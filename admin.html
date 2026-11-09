@@ -402,24 +402,33 @@ window.adminLogout = function() { signOut(auth).then(() => window.location.reloa
 // --- LOAD DATA ---
 async function loadData() {
     try {
-        // ሱቆችን መጫን
+        // 1. ሱቆችን መጫን
         const shopsSnap = await getDocs(collection(db, 'shops'));
         shopsList = [];
         shopsSnap.forEach(doc => shopsList.push({ id: doc.id, ...doc.data() }));
 
-        // ተጠቃሚዎችን መጫን
+        // 2. ተጠቃሚዎችን መጫን
         const usersSnap = await getDocs(collection(db, 'users'));
         usersList = [];
         usersSnap.forEach(doc => usersList.push({ id: doc.id, ...doc.data() }));
 
+        // 3. ማሳያዎችን ማደስ
         renderDashboard();
         renderShops();
         renderBilling();
         renderUsers();
         loadSupportSettings();
-    } catch (e) { console.error(e); showToast("ዳታ መጫን አልተቻለም", true); }
+        
+    } catch (e) { 
+        console.error("Firebase Error:", e); 
+        // ስህተቱ የፈቃድ ከሆነ ይህንን ያሳያል
+        if (e.code === 'permission-denied') {
+            showToast("የፈቃድ ስህተት! እባክዎ Firestore Rules ያስተካክሉ።", true);
+        } else {
+            showToast("ዳታ መጫን አልተቻለም: " + e.message, true); 
+        }
+    }
 }
-
 // --- RENDER: DASHBOARD ---
 function renderDashboard() {
     let active = 0, expired = 0, suspended = 0;
