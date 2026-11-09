@@ -1145,10 +1145,32 @@ window.editCustomer = async function(custId) {
     } catch(e) { showToast(e.message, true); }
 };
 window.deleteCustomer = async function(custId) {
-    if (!confirm("Are you sure you want to delete this customer?")) return;
-    try { await deleteDoc(doc(db, 'customers', custId)); showToast("Customer deleted!"); closeModal('profileModal'); await loadData(); switchView('customers'); } catch(e) { showToast(e.message, true); }
-};
+    if (!confirm("Are you sure you want to delete this customer? This will also delete all their sales and payment records.")) return;
+    
+    try {
+        // 1. የደንበኛውን ሽያጮች ማጥፋት
+        const salesQuery = query(collection(db, 'sales'), where('customerId', '==', custId));
+        const salesSnapshot = await getDocs(salesQuery);
+        const deleteSalesPromises = salesSnapshot.docs.map(doc => deleteDoc(doc.ref));
+        await Promise.all(deleteSalesPromises);
 
+        // 2. የደንበኛውን ክፍያዎች ማጥፋት
+        const paymentsQuery = query(collection(db, 'payments'), where('customerId', '==', custId));
+        const paymentsSnapshot = await getDocs(paymentsQuery);
+        const deletePaymentsPromises = paymentsSnapshot.docs.map(doc => deleteDoc(doc.ref));
+        await Promise.all(deletePaymentsPromises);
+
+        // 3. የደንበኛውን መረጃ ማጥፋት
+        await deleteDoc(doc(db, 'customers', custId));
+
+        showToast("Customer and all related records deleted!"); 
+        closeModal('profileModal'); 
+        await loadData(); 
+        switchView('customers'); 
+    } catch(e) { 
+        showToast("Error deleting customer: " + e.message, true); 
+    }
+};
 function renderHistory(container) {
     let html = `<div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-4"><label class="block text-xs font-semibold text-slate-500 mb-2">Filter by Date (በቀን ማጣሪያ)</label><input type="date" id="filterHistoryDate" onchange="historyPage=1; filterHistoryByDate()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500"><button onclick="clearHistoryFilter()" class="mt-2 text-xs text-blue-600 font-semibold">Clear Filter</button></div><h3 class="text-lg font-bold text-slate-800 mb-4">${translations[currentLang].history_title}</h3><div id="historyListContainer" class="space-y-3"></div><div id="historyPagination" class="pagination"></div>`;
     container.innerHTML = html; renderHistoryItems();
