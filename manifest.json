@@ -1,7 +1,7 @@
 {
-  "name": "HY Credit Tracker",
-  "short_name": "HY Tracker",
-  "description": "Retail Credit Management System",
+  "name": "HaniTech Digital Credit Management",
+  "short_name": "HaniTech",
+  "description": "Digital Credit Management System",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0f172a",
@@ -11,12 +11,14 @@
     {
       "src": "https://i.ibb.co/3s6H1yC/hy-logo.jpg",
       "sizes": "192x192",
-      "type": "image/jpeg"
+      "type": "image/jpeg",
+      "purpose": "any maskable"
     },
     {
       "src": "https://i.ibb.co/3s6H1yC/hy-logo.jpg",
       "sizes": "512x512",
-      "type": "image/jpeg"
+      "type": "image/jpeg",
+      "purpose": "any maskable"
     }
   ]
 }
