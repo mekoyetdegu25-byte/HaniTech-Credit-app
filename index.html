@@ -1224,10 +1224,10 @@ function renderDashboardPage(container) {
     const currentMonth = now.getMonth(); 
     const currentYear = now.getFullYear();
     
-    let filteredDebt = 0;
     let filteredPaid = 0; 
     let filteredExpense = 0; 
 
+    // በተመረጠው ጊዜ ውስጥ የተከፈለ ገንዘብ ማስላት
     salesList.forEach(s => { 
         const d = new Date(s.date); 
         let matchesFilter = false;
@@ -1240,14 +1240,11 @@ function renderDashboardPage(container) {
         if (currentFilter === 'custom_month' && s.date.startsWith(customDashMonth)) matchesFilter = true;
 
         if (matchesFilter) {
-            // ✅ ትክክለኛው ስሌት: ያልተከፈለውን ብቻ መደመር (Gross - Paid)
-            const unpaid = (s.totalAmount || 0) - (s.paidAmount || 0); 
-            filteredDebt += unpaid; 
             filteredPaid += (s.paidAmount || 0); 
         }
     });
 
-    // ወጪዎችን ማስላት (ካለ)
+    // በተመረጠው ጊዜ ውስጥ ወጪዎችን ማስላት (ካለ)
     if (typeof expensesList !== 'undefined') {
         expensesList.forEach(e => {
             const d = new Date(e.date);
@@ -1268,7 +1265,7 @@ function renderDashboardPage(container) {
     let html = `
         <h3 class="text-lg font-bold mb-4" style="color: var(--text-color);">Dashboard</h3>
         
-        <!-- All Time Debt -->
+        <!-- Total Debt (All Time) - ሁልጊዜ የሚታይ -->
         <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl p-4 text-white shadow-lg shadow-red-500/30 mb-4">
             <p class="text-red-100 text-xs font-medium mb-1">${translations[currentLang].total_debt} (All Time)</p>
             <h3 class="text-3xl font-bold">${totalDebt.toLocaleString()} <span class="text-sm font-normal">ETB</span></h3>
@@ -1297,18 +1294,15 @@ function renderDashboardPage(container) {
             </div>
         </div>
 
-        <!-- Filtered Results (Grid) -->
+        <!-- Filtered Results (የተመረጠው ጊዜ የተከፈለ እና ወጪ) -->
         <div class="grid grid-cols-1 gap-3 mb-4">
-            <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
-                <p class="text-slate-500 text-xs font-medium mb-1">${filterLabel} ያልተከፈለ ዕዳ (Debt)</p>
-                <h3 class="text-2xl font-bold text-red-500">${filteredDebt.toLocaleString()} ETB</h3>
-            </div>
-            
+            <!-- የተከፈለ ገንዘብ (Paid) -->
             <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
                 <p class="text-slate-500 text-xs font-medium mb-1">${filterLabel} የተከፈለ ገንዘብ (Paid)</p>
                 <h3 class="text-2xl font-bold text-emerald-500">${filteredPaid.toLocaleString()} ETB</h3>
             </div>
             
+            <!-- ወጪ (Expenses) -->
             ${typeof expensesList !== 'undefined' ? `
             <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
                 <p class="text-slate-500 text-xs font-medium mb-1">${filterLabel} ወጪ (Expenses)</p>
@@ -1317,6 +1311,7 @@ function renderDashboardPage(container) {
             ` : ''}
         </div>
         
+        <!-- Customers -->
         <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm mb-4">
             <p class="text-slate-500 text-xs font-medium mb-1">${translations[currentLang].total_customers}</p>
             <h3 class="text-xl font-bold text-slate-800">${customersList.length}</h3>
