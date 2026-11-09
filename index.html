@@ -3,15 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Credit Tracker</title>
+<title>HY Credit Tracker</title>
 <meta name="theme-color" content="#0f172a">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Credit Tracker">
+<meta name="apple-mobile-web-app-title" content="HY Tracker">
 
+<!-- PWA Manifest & Icons -->
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2966/2966327.png">
+<link rel="apple-touch-icon" href="https://i.ibb.co/3s6H1yC/hy-logo.jpg">
 
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -56,10 +57,8 @@
 <body class="pb-20"> 
 
 <div id="splash">
-    <div class="w-20 h-20 bg-blue-500 rounded-3xl flex items-center justify-center mb-4 shadow-lg shadow-blue-500/30">
-        <i class="fa-solid fa-file-invoice-dollar text-4xl text-white"></i>
-    </div>
-    <h1 class="text-2xl font-bold tracking-wide">Credit Tracker</h1>
+    <img src="https://i.ibb.co/3s6H1yC/hy-logo.jpg" alt="HY Logo" class="w-24 h-24 rounded-2xl mb-4 shadow-lg">
+    <h1 class="text-2xl font-bold tracking-wide">HY Credit Tracker</h1>
     <p class="text-slate-400 mt-2 text-sm">Retail Management</p>
 </div>
 
@@ -69,9 +68,7 @@
     <!-- LOGIN FORM -->
     <div id="loginFormView">
         <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/30">
-                <i class="fa-solid fa-mobile-screen text-2xl text-white"></i>
-            </div>
+            <img src="https://i.ibb.co/3s6H1yC/hy-logo.jpg" alt="HY Logo" class="w-16 h-16 rounded-2xl mx-auto mb-4 shadow-lg">
             <h1 class="text-2xl font-bold text-slate-800">Welcome Back</h1>
             <p class="text-slate-500 text-sm mt-1">Sign in to your account</p>
         </div>
@@ -225,7 +222,6 @@
             </div>
         </div>
 
-        <!-- Add Item to Cart Area -->
         <div class="border border-slate-200 rounded-xl p-4 mb-4 bg-slate-50">
             <div class="input-group mb-2">
                 <label class="text-xs">Item Name (የዕቃ ስም)</label>
@@ -256,16 +252,13 @@
             </div>
         </div>
 
-        <!-- Cart List -->
         <div class="mb-4">
             <h4 class="text-xs font-bold text-slate-500 mb-2">Cart Items</h4>
             <div id="saleCartList" class="space-y-2 max-h-40 overflow-y-auto hide-scrollbar">
-                <!-- Cart items will appear here -->
                 <p class="text-center text-xs text-slate-400 py-2">No items added yet.</p>
             </div>
         </div>
 
-        <!-- Checkout Summary -->
         <div class="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-4">
             <div class="flex justify-between items-center mb-2">
                 <span class="text-sm font-semibold text-slate-700">Grand Total:</span>
@@ -374,8 +367,7 @@
     </div>
 </div>
 
-<!-- SCRIPT SECTION (ይህ በ index.html ውስጥ በታች ይገባል) -->
-    <script type="module">
+<script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber, updatePassword } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, query, where, doc, getDoc, setDoc, deleteDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js"; 
@@ -395,6 +387,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app); 
 
+// ⚠️ የእርስዎ VAPID Key
 const VAPID_KEY = "BNLbkd5N91CUux9s1O5LasZcccd8xmM5GeIInrZmydbAJ2cFb8u2YLcUigK3DaaOcUOCbvFnOZtikN0rkvkcATU"; 
 
 let currentUser = null;
@@ -405,10 +398,10 @@ let customersList = [];
 let salesList = [];
 let paymentsList = [];
 let priceList = [];
-let cart = []; // ✅ New Cart Array
+let cart = []; 
 let currentLang = 'en';
 let confirmationResult = null;
-let currentFilter = 'today'; // ✅ Dashboard Filter
+let currentFilter = 'today'; 
 
 const translations = {
     en: {
@@ -596,7 +589,6 @@ onAuthStateChanged(auth, async (user) => {
             if (userDoc.exists()) {
                 const uData = userDoc.data();
                 currentUserRole = uData.role || 'owner';
-                // ✅ Employee gets their owner's shop ID
                 currentShopId = uData.shopId || user.uid;
                 shopName = uData.shopName || "My Shop";
                 
@@ -727,9 +719,9 @@ window.switchView = function(viewName, navElement) {
     else if (viewName === 'history') renderHistory(main);
     else if (viewName === 'pricelist') renderPriceListTab(main);
     else if (viewName === 'settings') renderSettings(main);
+    else if (viewName === 'dashboard') renderDashboardPage(main);
 };
 
-// ✅ Dashboard with Filters
 window.setDashboardFilter = function(filter) {
     currentFilter = filter;
     renderHome(document.getElementById('mainContent'));
@@ -766,7 +758,6 @@ function renderHome(container) {
                 <h3 class="text-3xl font-bold">${totalDebt.toLocaleString()} <span class="text-sm font-normal">ETB</span></h3>
             </div>
             
-            <!-- ✅ Filter Buttons -->
             <div class="col-span-2 flex justify-between bg-white p-2 rounded-xl border border-slate-100">
                 <button onclick="setDashboardFilter('today')" class="flex-1 py-2 text-xs font-bold rounded-lg ${currentFilter === 'today' ? 'bg-blue-100 text-blue-600' : 'text-slate-500'}">Today</button>
                 <button onclick="setDashboardFilter('month')" class="flex-1 py-2 text-xs font-bold rounded-lg ${currentFilter === 'month' ? 'bg-blue-100 text-blue-600' : 'text-slate-500'}">Month</button>
@@ -798,18 +789,22 @@ function renderHome(container) {
                 <div class="action-icon bg-grad-1"><i class="fa-solid fa-users"></i></div>
                 <span class="text-xs font-semibold text-slate-700 text-center" data-lang="customer_list">${translations[currentLang].customer_list}</span>
             </div>
+            
+            <div class="action-card" onclick="switchView('dashboard')">
+                <div class="action-icon bg-grad-5"><i class="fa-solid fa-chart-pie"></i></div>
+                <span class="text-xs font-semibold text-slate-700 text-center">Dashboard</span>
+            </div>
         </div>
     `;
     container.innerHTML = html;
 }
 
-// ✅ Cart Logic
 window.autoFillItemPrice = function() {
     const itemName = document.getElementById('saleItemName').value.trim();
     const foundItem = priceList.find(i => i.name.toLowerCase() === itemName.toLowerCase());
     if (foundItem) {
         document.getElementById('saleUnit').value = foundItem.unit || 'piece';
-        calcCartItemTotal(); // Calculate total based on qty * price
+        calcCartItemTotal(); 
     }
 };
 
@@ -837,7 +832,6 @@ window.addToSaleCart = function() {
     
     cart.push({ name: itemName, qty: qty, unit: unit, total: total });
     
-    // Clear inputs
     document.getElementById('saleItemName').value = '';
     document.getElementById('saleQty').value = '';
     document.getElementById('saleTotalAmount').value = '';
@@ -906,7 +900,6 @@ window.openPayment = function() {
     openModal('paymentModal');
 };
 
-// ✅ Save Multiple Items in One Sale
 window.saveCreditSale = async function() {
     const custName = document.getElementById('saleCustomerName').value.trim();
     const custPhone = document.getElementById('saleCustomerPhone').value.trim();
@@ -930,15 +923,12 @@ window.saveCreditSale = async function() {
             customerId = newCustRef.id;
         }
 
-        let grandTotal = cart.reduce((sum, item) => sum + item.total, 0);
         let remainingPaid = paid;
 
-        // Loop through cart and save each item
         for (let i = 0; i < cart.length; i++) {
             const item = cart[i];
-            // Distribute paid amount proportionally (for simplicity, we apply to first item or divide)
             let itemPaid = 0;
-            if (i === 0) itemPaid = Math.min(remainingPaid, item.total); // Apply paid to first item
+            if (i === 0) itemPaid = Math.min(remainingPaid, item.total);
             else if (remainingPaid > 0) {
                 itemPaid = Math.min(remainingPaid, item.total);
                 remainingPaid -= itemPaid;
@@ -1193,7 +1183,6 @@ window.clearHistoryFilter = function() {
     renderHistoryItems();
 };
 
-// ✅ Price List Tab with Edit
 function renderPriceListTab(container) {
     let html = `
         <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-4">
@@ -1365,7 +1354,7 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-console.log("✅ Credit Tracker initialized!");
+console.log("✅ HY Credit Tracker initialized!");
 </script>
 </body>
 </html>
