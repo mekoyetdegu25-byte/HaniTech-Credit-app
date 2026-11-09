@@ -937,9 +937,14 @@ window.viewCustomerProfile = function(custId) {
         </div>
         
         ${currentDebt > 0 ? `
-        <button onclick="closeModal('profileModal'); openPaymentForCustomer('${cust.id}')" class="w-full bg-emerald-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/30 mb-4 flex items-center justify-center gap-2">
-            <i class="fa-solid fa-hand-holding-dollar"></i> Record Payment
-        </button>
+        <div class="grid grid-cols-2 gap-2 mb-4">
+            <button onclick="closeModal('profileModal'); openPaymentForCustomer('${cust.id}')" class="w-full bg-emerald-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-hand-holding-dollar"></i> Record Payment
+            </button>
+            <button onclick="sendDebtHistory('${cust.id}')" class="w-full bg-blue-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-paper-plane"></i> Send Summary
+            </button>
+        </div>
         ` : ''}
 
         <h4 class="font-bold text-slate-800 text-sm mb-3">Transaction History</h4>
@@ -948,6 +953,61 @@ window.viewCustomerProfile = function(custId) {
         </div>
     `;
     openModal('profileModal');
+};
+    // ✅ NEW: Send Debt History via WhatsApp / Telegram / SMS
+window.sendDebtHistory = async function(custId) {
+    const cust = customersList.find(c => c.id === custId); 
+    if (!cust) return;
+    
+    const debts = calculateCustomerDebts(); 
+    const currentDebt = debts[custId] || 0;
+    
+    if (currentDebt <= 0) {
+        showToast("This customer has no debt.", true);
+        return;
+    }
+
+    const customerSales = salesList.filter(s => s.customerId === custId && (s.totalAmount - (s.paidAmount || 0)) > 0);
+    
+    let itemListText = "";
+    customerSales.forEach(s => {
+        const unpaid = s.totalAmount - (s.paidAmount || 0);
+        itemListText += `\n- ${s.itemName} (${s.quantity} ${s.unit}): ${unpaid.toLocaleString()} ETB`;
+    });
+
+    const shopNameText = shopName || "My Shop";
+    const message = `*${shopNameText}*\n\nHello *${cust.name}*,\n\nYour current debt summary is:\n${itemListText}\n\n*Total Debt: ${currentDebt.toLocaleString()} ETB*\n\nPlease clear your debt at your earliest convenience. Thank you!`;
+    
+    let phone = cust.phone || '';
+    phone = phone.replace(/[^0-9]/g, ''); 
+    
+    if (phone.startsWith('0')) {
+        phone = '251' + phone.substring(1);
+    }
+
+    if (!phone) {
+        const newPhone = prompt("This customer has no phone number. Enter phone number (e.g. 0911223344):");
+        if (!newPhone) return;
+        let cleanPhone = newPhone.replace(/[^0-9]/g, '');
+        if (cleanPhone.startsWith('0')) cleanPhone = '251' + cleanPhone.substring(1);
+        
+        await updateDoc(doc(db, 'customers', custId), { phone: newPhone.trim() });
+        await loadData();
+        phone = cleanPhone;
+    }
+
+    const choice = prompt("Send via:\n1 = WhatsApp\n2 = Telegram\n3 = SMS Copy");
+    
+    if (choice === '1') {
+        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+    } else if (choice === '2') {
+        window.open(`https://t.me/+${phone}`, '_blank');
+        navigator.clipboard.writeText(message);
+        alert("Message copied! Telegram will open. Paste the message in the chat.");
+    } else if (choice === '3') {
+        navigator.clipboard.writeText(message);
+        showToast("Message copied to clipboard! You can paste it in SMS.");
+    }
 };
 // ✅ NEW: Direct Payment for Customer from Profile
 window.openPaymentForCustomer = function(custId) {
