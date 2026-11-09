@@ -1190,9 +1190,8 @@ function renderHistory(container) {
     <div id="historyListContainer" class="space-y-3"></div>
     <div id="historyPagination" class="pagination"></div>
     `;
-    container.innerHTML = html; 
+        container.innerHTML = html; 
     renderHistoryItems();
-}
 }
 function renderHistoryItems(filterType = 'recent', filterValue = null) {
     let historyItems = []; 
@@ -1394,11 +1393,8 @@ function renderSettings(container) {
     </div>
     `;
     
-    html += `
-        <button onclick="logout()" class="w-full bg-red-50 text-red-600 font-bold py-4 rounded-2xl border border-red-100 flex items-center justify-center gap-2 mt-4">
-            <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
-        </button>
-    `;
+    // ❌ Logout ከዚህ ታች ተወግዷል! (ከላይ Header ላይ ስላለ)
+
     container.innerHTML = html;
 }
     // ✅ NEW: Clear All Data (Except Price List)
