@@ -584,7 +584,8 @@ function updateItemDatalist() {
 
 function calculateCustomerDebts() {
     const debts = {};
-    // ሁሉንም ሽያጮች መደመር
+    
+    // ሁሉንም ሽያጮች መደመር (የተከፈለውን ቀንሶ)
     salesList.forEach(s => { 
         const paid = s.paidAmount || 0; 
         const unpaid = s.totalAmount - paid; 
@@ -593,13 +594,10 @@ function calculateCustomerDebts() {
             debts[s.customerId] += unpaid; 
         } 
     });
-    // የተከፈሉ ክፍያዎችን መቀነስ (ከሽያጭ ውጪ የተመዘገቡ ካሉ)
-    paymentsList.forEach(p => { 
-        if (debts[p.customerId] !== undefined) { 
-            debts[p.customerId] -= p.amount; 
-            if (debts[p.customerId] <= 0) delete debts[p.customerId]; 
-        } 
-    });
+    
+    // ❌ የተከፈሉ ክፍያዎችን እዚህ መቀነስ የለብንም! 
+    // ምክንያቱም ክፍያው አስቀድሞ በ sales.paidAmount ውስጥ ተቀንሷል።
+    
     return debts;
 }
 
@@ -965,11 +963,50 @@ window.viewCustomerProfile = function(custId) {
     const currentDebt = debts[custId] || 0;
     
     let history = []; 
-    cSales.forEach(s => history.push({ type: 'sale', date: s.date, amount: s.totalAmount, note: `${s.itemName} (${s.quantity} ${s.unit})` })); 
-    cPayments.forEach(p => history.push({ type: 'payment', date: p.date, amount: p.amount, note: 'Payment' })); 
+    
+    // ሽያጮችን መጨመር
+    cSales.forEach(s => {
+        const paid = s.paidAmount || 0;
+        const unpaid = s.totalAmount - paid;
+        history.push({ 
+            type: 'sale', 
+            date: s.date, 
+            amount: s.totalAmount, 
+            paid: paid,
+            unpaid: unpaid,
+            note: `${s.itemName} (${s.quantity} ${s.unit})` 
+        }); 
+    }); 
+    
+    // ክፍያዎችን መጨመር
+    cPayments.forEach(p => {
+        history.push({ type: 'payment', date: p.date, amount: p.amount, note: 'Payment' }); 
+    });
+    
     history.sort((a, b) => b.date.localeCompare(a.date));
     
-    let historyHtml = history.length === 0 ? `<p class="text-center text-slate-400 text-sm py-4">No transactions yet.</p>` : history.map(h => `<div class="flex justify-between items-center py-3 border-b border-slate-100 last:border-0"><div><p class="font-semibold text-slate-800 text-sm">${h.note}</p><p class="text-xs text-slate-500">${h.date}</p></div><p class="font-bold ${h.type === 'sale' ? 'text-amber-500' : 'text-emerald-500'}">${h.type === 'sale' ? '+' : '-'} ${h.amount.toLocaleString()} ETB</p></div>`).join('');
+    let historyHtml = history.length === 0 ? `<p class="text-center text-slate-400 text-sm py-4">No transactions yet.</p>` : history.map(h => {
+        if (h.type === 'sale') {
+            return `<div class="flex justify-between items-center py-3 border-b border-slate-100 last:border-0">
+                <div>
+                    <p class="font-semibold text-slate-800 text-sm">${h.note}</p>
+                    <p class="text-xs text-slate-500">${h.date}</p>
+                </div>
+                <div class="text-right">
+                    <p class="font-bold text-amber-500 text-sm">+ ${h.amount.toLocaleString()} ETB</p>
+                    ${h.unpaid > 0 ? `<p class="text-[10px] text-red-500">Debt: ${h.unpaid.toLocaleString()} ETB</p>` : `<p class="text-[10px] text-emerald-500">Paid</p>`}
+                </div>
+            </div>`;
+        } else {
+            return `<div class="flex justify-between items-center py-3 border-b border-slate-100 last:border-0">
+                <div>
+                    <p class="font-semibold text-slate-800 text-sm">${h.note}</p>
+                    <p class="text-xs text-slate-500">${h.date}</p>
+                </div>
+                <p class="font-bold text-emerald-500 text-sm">- ${h.amount.toLocaleString()} ETB</p>
+            </div>`;
+        }
+    }).join('');
     
     const content = document.getElementById('profileContent');
     const rating = getCustomerRating(cust.id);
