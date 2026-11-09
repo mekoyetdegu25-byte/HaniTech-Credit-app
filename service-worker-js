@@ -7,7 +7,6 @@ const ASSETS_TO_CACHE = [
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
 
-// ፋይሎችን ማስቀመጥ (Install)
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -17,7 +16,6 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// አዲስ ፋይል ሲመጣ ማደስ (Activate)
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -32,7 +30,6 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// ፍለጋ ሲደረግ ከ Cache ማመጣት (Fetch)
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((response) => {
