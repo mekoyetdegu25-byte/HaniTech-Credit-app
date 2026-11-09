@@ -669,18 +669,14 @@ async function loadData() {
     await checkSubscriptionBanner();
 }
 
-// ✅ NEW: Load Support Info
+// ✅ NEW: Load Support Info (Globally)
+let globalSupportInfo = { phone: '...', email: '...', telegram: '...' };
+
 async function loadSupportInfo() {
     try {
         const supportDoc = await getDoc(doc(db, 'settings', 'support'));
         if (supportDoc.exists()) {
-            const data = supportDoc.data();
-            const pEl = document.getElementById('supportPhone');
-            const eEl = document.getElementById('supportEmail');
-            const tEl = document.getElementById('supportTelegram');
-            if(pEl) pEl.innerText = data.phone || 'Not set';
-            if(eEl) eEl.innerText = data.email || 'Not set';
-            if(tEl) tEl.innerText = data.telegram || 'Not set';
+            globalSupportInfo = supportDoc.data();
         }
     } catch(e) { console.log("Support info error:", e); }
 }
@@ -757,15 +753,20 @@ function getCustomerRating(custId) {
     }
 }
 
-window.switchView = function(viewName, navElement) {
+window.switchView = async function(viewName, navElement) {
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); 
     if (navElement) navElement.classList.add('active');
     const main = document.getElementById('mainContent'); main.innerHTML = '';
+    
     if (viewName === 'home') renderHome(main); 
     else if (viewName === 'customers') renderCustomers(main); 
     else if (viewName === 'history') renderHistory(main); 
     else if (viewName === 'pricelist') renderPriceListTab(main); 
-    else if (viewName === 'settings') renderSettings(main); 
+    else if (viewName === 'settings') {
+        // ✅ Settings ሲከፈት ዳታውን አስቀድሞ እንጫን
+        await loadSupportInfo(); 
+        renderSettings(main);
+    }
     else if (viewName === 'dashboard') renderDashboardPage(main);
 };
 
@@ -1460,72 +1461,82 @@ window.deletePriceListItem = async function(itemId) {
 function renderSettings(container) {
     let html = `
         <h3 class="text-lg font-bold text-slate-800 mb-4">Settings</h3>
+        
+        <!-- Shop Profile (Collapsible) -->
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-4">
-            <div class="p-4 border-b border-slate-100">
-                <p class="font-bold text-slate-800 text-sm">Shop Profile</p>
-                <div class="mt-2">
-                    <input type="text" id="settingShopName" value="${shopName}" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 mb-2">
-                    <input type="tel" id="settingShopPhone" value="${shopPhone}" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 mb-2">
-                    <button onclick="saveShopProfile()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-sm">Save Profile</button>
-                </div>
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center cursor-pointer" onclick="document.getElementById('secShopProfile').classList.toggle('hidden'); this.querySelector('.arrow').classList.toggle('rotate-90');">
+                <p class="font-bold text-slate-800 text-sm">🏪 Shop Profile</p>
+                <i class="fa-solid fa-chevron-right text-slate-400 text-xs transition-transform arrow"></i>
             </div>
-            <div class="p-4 border-b border-slate-100 flex justify-between items-center">
-                <div>
-                    <p class="font-bold text-slate-800 text-sm">Language / ቋንቋ</p>
-                    <p class="text-xs text-slate-500">Change app language</p>
-                </div>
-                <select id="langSelect" onchange="changeLanguage(this.value)" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-semibold">
-                    <option value="am" ${currentLang === 'am' ? 'selected' : ''}>አማርኛ</option>
-                    <option value="en" ${currentLang === 'en' ? 'selected' : ''}>English</option>
-                </select>
-            </div>
-            <div class="p-4 border-b border-slate-100 flex justify-between items-center">
-                <div>
-                    <p class="font-bold text-slate-800 text-sm">Dark Mode</p>
-                    <p class="text-xs text-slate-500">Switch to dark theme</p>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode(this.checked)" ${document.body.classList.contains('dark-mode') ? 'checked' : ''}>
-                    <span class="slider"></span>
-                </label>
-            </div>
-            <div class="p-4">
-                <p class="font-bold text-slate-800 text-sm mb-2">Data Backup (CSV)</p>
-                <button onclick="exportDataToCSV()" class="w-full bg-emerald-50 text-emerald-600 font-bold py-3 rounded-xl border border-emerald-100 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-download"></i> Download All Data
-                </button>
+            <div id="secShopProfile" class="p-4 hidden">
+                <input type="text" id="settingShopName" value="${shopName}" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 mb-2" placeholder="Shop Name">
+                <input type="tel" id="settingShopPhone" value="${shopPhone}" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 mb-2" placeholder="Phone Number">
+                <button onclick="saveShopProfile()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-sm">Save Profile</button>
             </div>
         </div>
 
+        <!-- Security & Password (Collapsible) -->
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-4">
-            <div class="p-4 border-b border-slate-100">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center cursor-pointer" onclick="document.getElementById('secPassword').classList.toggle('hidden'); this.querySelector('.arrow').classList.toggle('rotate-90');">
                 <p class="font-bold text-slate-800 text-sm">🔒 Security & Password</p>
-                <div class="mt-2 space-y-2">
-                    <input type="password" id="currentPasswordInput" placeholder="Current Password" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500">
-                    <input type="password" id="newPasswordInput" placeholder="New Password" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500">
-                    <input type="password" id="confirmPasswordInput" placeholder="Confirm New Password" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500">
-                    <button onclick="changePassword()" class="w-full bg-amber-500 text-white font-bold py-2 rounded-lg text-sm">🔄 Change Password</button>
-                </div>
+                <i class="fa-solid fa-chevron-right text-slate-400 text-xs transition-transform arrow"></i>
+            </div>
+            <div id="secPassword" class="p-4 hidden">
+                <input type="password" id="currentPasswordInput" placeholder="Current Password" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm mb-2">
+                <input type="password" id="newPasswordInput" placeholder="New Password" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm mb-2">
+                <input type="password" id="confirmPasswordInput" placeholder="Confirm New Password" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm mb-2">
+                <button onclick="changePassword()" class="w-full bg-amber-500 text-white font-bold py-2 rounded-lg text-sm">🔄 Change Password</button>
             </div>
         </div>
 
+        <!-- Support Info (Collapsible) -->
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-4">
-            <div class="p-4">
-                <p class="font-bold text-slate-800 text-sm mb-2">📞 Support & Help</p>
-                <div class="grid grid-cols-1 gap-2">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center cursor-pointer" onclick="document.getElementById('secSupport').classList.toggle('hidden'); this.querySelector('.arrow').classList.toggle('rotate-90');">
+                <p class="font-bold text-slate-800 text-sm">📞 Support & Help</p>
+                <i class="fa-solid fa-chevron-right text-slate-400 text-xs transition-transform arrow"></i>
+            </div>
+            <div id="secSupport" class="p-4 hidden">
+                <div class="space-y-2">
                     <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
                         <p class="text-xs text-slate-500">Phone</p>
-                        <p class="font-bold text-slate-800" id="supportPhone">Loading...</p>
+                        <p class="font-bold text-slate-800">${globalSupportInfo.phone || 'Not set'}</p>
                     </div>
                     <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
                         <p class="text-xs text-slate-500">Email</p>
-                        <p class="font-bold text-slate-800" id="supportEmail">Loading...</p>
+                        <p class="font-bold text-slate-800">${globalSupportInfo.email || 'Not set'}</p>
                     </div>
                     <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
                         <p class="text-xs text-slate-500">Telegram</p>
-                        <p class="font-bold text-slate-800" id="supportTelegram">Loading...</p>
+                        <p class="font-bold text-slate-800">${globalSupportInfo.telegram || 'Not set'}</p>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Preferences (Collapsible) -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-4">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center cursor-pointer" onclick="document.getElementById('secPrefs').classList.toggle('hidden'); this.querySelector('.arrow').classList.toggle('rotate-90');">
+                <p class="font-bold text-slate-800 text-sm">🌍 Preferences</p>
+                <i class="fa-solid fa-chevron-right text-slate-400 text-xs transition-transform arrow"></i>
+            </div>
+            <div id="secPrefs" class="p-4 hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <p class="text-sm font-semibold">Language / ቋንቋ</p>
+                    <select id="langSelect" onchange="changeLanguage(this.value)" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-semibold">
+                        <option value="am" ${currentLang === 'am' ? 'selected' : ''}>አማርኛ</option>
+                        <option value="en" ${currentLang === 'en' ? 'selected' : ''}>English</option>
+                    </select>
+                </div>
+                <div class="flex justify-between items-center mb-4">
+                    <p class="text-sm font-semibold">Dark Mode</p>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode(this.checked)" ${document.body.classList.contains('dark-mode') ? 'checked' : ''}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <button onclick="exportDataToCSV()" class="w-full bg-emerald-50 text-emerald-600 font-bold py-3 rounded-xl border border-emerald-100 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-download"></i> Download All Data (CSV)
+                </button>
             </div>
         </div>
     `;
