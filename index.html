@@ -1475,6 +1475,36 @@ function renderSettings(container) {
             </div>
         </div>
 
+        <!-- Preferences & Backup (Collapsible) -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-4">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center cursor-pointer" onclick="document.getElementById('secPrefs').classList.toggle('hidden'); this.querySelector('.arrow').classList.toggle('rotate-90');">
+                <p class="font-bold text-slate-800 text-sm">🌍 Preferences & Backup</p>
+                <i class="fa-solid fa-chevron-right text-slate-400 text-xs transition-transform arrow"></i>
+            </div>
+            <div id="secPrefs" class="p-4 hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <p class="text-sm font-semibold">Language / ቋንቋ</p>
+                    <select id="langSelect" onchange="changeLanguage(this.value)" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-semibold">
+                        <option value="am" ${currentLang === 'am' ? 'selected' : ''}>አማርኛ</option>
+                        <option value="en" ${currentLang === 'en' ? 'selected' : ''}>English</option>
+                    </select>
+                </div>
+                <div class="flex justify-between items-center mb-4">
+                    <p class="text-sm font-semibold">Dark Mode</p>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode(this.checked)" ${document.body.classList.contains('dark-mode') ? 'checked' : ''}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="border-t border-slate-100 pt-3">
+                    <p class="font-bold text-slate-800 text-sm mb-2">Data Backup (CSV)</p>
+                    <button onclick="exportDataToCSV()" class="w-full bg-emerald-50 text-emerald-600 font-bold py-3 rounded-xl border border-emerald-100 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-download"></i> Download All Data
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Security & Password (Collapsible) -->
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-4">
             <div class="p-4 border-b border-slate-100 flex justify-between items-center cursor-pointer" onclick="document.getElementById('secPassword').classList.toggle('hidden'); this.querySelector('.arrow').classList.toggle('rotate-90');">
@@ -1513,29 +1543,31 @@ function renderSettings(container) {
             </div>
         </div>
 
-        <!-- Preferences (Collapsible) -->
+        <!-- Manage Employees (Owner only) (Collapsible) -->
+        ${currentUserRole === 'owner' ? `
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-4">
-            <div class="p-4 border-b border-slate-100 flex justify-between items-center cursor-pointer" onclick="document.getElementById('secPrefs').classList.toggle('hidden'); this.querySelector('.arrow').classList.toggle('rotate-90');">
-                <p class="font-bold text-slate-800 text-sm">🌍 Preferences</p>
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center cursor-pointer" onclick="document.getElementById('secEmployees').classList.toggle('hidden'); this.querySelector('.arrow').classList.toggle('rotate-90');">
+                <p class="font-bold text-slate-800 text-sm">👥 Manage Employees</p>
                 <i class="fa-solid fa-chevron-right text-slate-400 text-xs transition-transform arrow"></i>
             </div>
-            <div id="secPrefs" class="p-4 hidden">
-                <div class="flex justify-between items-center mb-4">
-                    <p class="text-sm font-semibold">Language / ቋንቋ</p>
-                    <select id="langSelect" onchange="changeLanguage(this.value)" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-semibold">
-                        <option value="am" ${currentLang === 'am' ? 'selected' : ''}>አማርኛ</option>
-                        <option value="en" ${currentLang === 'en' ? 'selected' : ''}>English</option>
-                    </select>
-                </div>
-                <div class="flex justify-between items-center mb-4">
-                    <p class="text-sm font-semibold">Dark Mode</p>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode(this.checked)" ${document.body.classList.contains('dark-mode') ? 'checked' : ''}>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <button onclick="exportDataToCSV()" class="w-full bg-emerald-50 text-emerald-600 font-bold py-3 rounded-xl border border-emerald-100 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-download"></i> Download All Data (CSV)
+            <div id="secEmployees" class="p-4 hidden">
+                <button onclick="openModal('employeeModal')" class="w-full bg-purple-50 text-purple-600 font-bold py-3 rounded-xl border border-purple-100 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-user-plus"></i> Add New Employee
+                </button>
+            </div>
+        </div>
+        ` : ''}
+
+        <!-- ✅ Danger Zone (Collapsible) -->
+        <div class="bg-red-50 rounded-2xl border border-red-200 shadow-sm overflow-hidden mb-4 mt-6">
+            <div class="p-4 border-b border-red-200 bg-red-100 flex justify-between items-center cursor-pointer" onclick="document.getElementById('secDanger').classList.toggle('hidden'); this.querySelector('.arrow').classList.toggle('rotate-90');">
+                <p class="font-bold text-red-700 text-sm flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation"></i> Danger Zone</p>
+                <i class="fa-solid fa-chevron-right text-red-500 text-xs transition-transform arrow"></i>
+            </div>
+            <div id="secDanger" class="p-4 hidden">
+                <p class="text-xs text-red-600 mb-3">ይህ ቁልፍ ሁሉንም ደንበኞች፣ ሽያጮች እና ክፍያዎችን በቋሚነት ያጠፋል። (Price List ግን አይነካም)።</p>
+                <button onclick="clearAllData()" class="w-full bg-red-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-red-600/30 active:scale-95 transition-transform flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-trash-can"></i> Delete All Customers & Transactions
                 </button>
             </div>
         </div>
