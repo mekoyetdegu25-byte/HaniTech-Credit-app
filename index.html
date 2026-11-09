@@ -961,7 +961,7 @@ window.viewCustomerProfile = function(custId) {
     
     let historyHtml = history.length === 0 ? `<p class="text-center text-slate-400 text-sm py-4">No transactions yet.</p>` : history.map(h => `<div class="flex justify-between items-center py-3 border-b border-slate-100 last:border-0"><div><p class="font-semibold text-slate-800 text-sm">${h.note}</p><p class="text-xs text-slate-500">${h.date}</p></div><p class="font-bold ${h.type === 'sale' ? 'text-amber-500' : 'text-emerald-500'}">${h.type === 'sale' ? '+' : '-'} ${h.amount.toLocaleString()} ETB</p></div>`).join('');
     
-            const content = document.getElementById('profileContent');
+                const content = document.getElementById('profileContent');
     const rating = getCustomerRating(cust.id);
     
     content.innerHTML = `
@@ -1000,7 +1000,7 @@ window.viewCustomerProfile = function(custId) {
         </div>
     `;
     openModal('profileModal');
-}
+} // 👈 ይህ መዝጊያ ጠፍቶ ነበር!
     ✅ NEW: Send Debt History via WhatsApp / Telegram / SMS
 window.sendDebtHistory = async function(custId) {
     const cust = customersList.find(c => c.id === custId); 
