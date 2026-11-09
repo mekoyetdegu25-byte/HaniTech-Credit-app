@@ -587,6 +587,31 @@ function calculateCustomerDebts() {
     paymentsList.forEach(p => { if (debts[p.customerId] !== undefined) { debts[p.customerId] -= p.amount; if (debts[p.customerId] <= 0) delete debts[p.customerId]; } });
     return debts;
 }
+    // ✅ NEW: Calculate Customer Rating
+function getCustomerRating(custId) {
+    const debts = calculateCustomerDebts();
+    const currentDebt = debts[custId] || 0;
+    
+    if (currentDebt <= 0) {
+        return { text: "🟢 Good Payer", color: "text-emerald-600 bg-emerald-50 border-emerald-200" };
+    }
+
+    // ያልተከፈለ ዕዳ ያለበትን የመጨረሻ ቀን መፈለግ
+    const customerSales = salesList.filter(s => s.customerId === custId && (s.totalAmount - (s.paidAmount || 0)) > 0);
+    if (customerSales.length === 0) return { text: "🟢 Good Payer", color: "text-emerald-600 bg-emerald-50 border-emerald-200" };
+
+    // ከመጨረሻው ሽያጭ ቀን ጀምሮ ያለፉትን ቀናት ማስላት
+    customerSales.sort((a, b) => new Date(a.date) - new Date(b.date));
+    const firstUnpaidDate = new Date(customerSales[0].date);
+    const today = new Date();
+    const diffDays = Math.ceil((today - firstUnpaidDate) / (1000 * 60 * 60 * 24));
+
+    if (diffDays >= 30) {
+        return { text: "🔴 High Risk", color: "text-red-600 bg-red-50 border-red-200" };
+    } else {
+        return { text: "🟡 Average", color: "text-amber-600 bg-amber-50 border-amber-200" };
+    }
+}
 
 window.switchView = function(viewName, navElement) {
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); if (navElement) navElement.classList.add('active');
@@ -891,7 +916,26 @@ function renderCustomerItems() {
         const debt = debts[c.id] || 0; 
         const debtColor = debt > 0 ? 'text-red-500' : 'text-emerald-500'; 
         const debtText = debt > 0 ? `${debt.toLocaleString()} ETB` : 'Paid'; 
-        html += `<div class="customer-card bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center" onclick="viewCustomerProfile('${c.id}')"><div class="flex items-center gap-3"><div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 font-bold">${c.name.charAt(0).toUpperCase()}</div><div><h4 class="font-bold text-slate-800 text-sm">${c.name}</h4><p class="text-xs text-slate-500">${c.phone || '-'}</p></div></div><div class="text-right"><p class="text-xs text-slate-400 mb-1">${translations[currentLang].debt}</p><p class="font-bold ${debtColor} text-sm">${debtText}</p></div></div>`; 
+        
+        // ✅ ደረጃውን መጥራት
+        const rating = getCustomerRating(c.id);
+
+        html += `
+            <div class="customer-card bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center" onclick="viewCustomerProfile('${c.id}')">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 font-bold">${c.name.charAt(0).toUpperCase()}</div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-sm">${c.name}</h4>
+                        <p class="text-xs text-slate-500 mb-1">${c.phone || '-'}</p>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded border ${rating.color}">${rating.text}</span>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-slate-400 mb-1">${translations[currentLang].debt}</p>
+                    <p class="font-bold ${debtColor} text-sm">${debtText}</p>
+                </div>
+            </div>
+        `; 
     });
     container.innerHTML = html;
 
@@ -917,7 +961,9 @@ window.viewCustomerProfile = function(custId) {
     
     let historyHtml = history.length === 0 ? `<p class="text-center text-slate-400 text-sm py-4">No transactions yet.</p>` : history.map(h => `<div class="flex justify-between items-center py-3 border-b border-slate-100 last:border-0"><div><p class="font-semibold text-slate-800 text-sm">${h.note}</p><p class="text-xs text-slate-500">${h.date}</p></div><p class="font-bold ${h.type === 'sale' ? 'text-amber-500' : 'text-emerald-500'}">${h.type === 'sale' ? '+' : '-'} ${h.amount.toLocaleString()} ETB</p></div>`).join('');
     
-    const content = document.getElementById('profileContent');
+        const content = document.getElementById('profileContent');
+    const rating = getCustomerRating(cust.id); // ✅ ደረጃውን መጥራት
+    
     content.innerHTML = `
         <div class="flex justify-end gap-2 mb-2">
             <button onclick="editCustomer('${cust.id}')" class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-600"><i class="fa-solid fa-pen"></i></button>
@@ -929,6 +975,7 @@ window.viewCustomerProfile = function(custId) {
             <h3 class="font-bold text-slate-800 text-lg">${cust.name}</h3>
             <p class="text-sm text-slate-500">${cust.phone || '-'}</p>
             <p class="text-xs text-slate-500 mt-1">📍 ${cust.address || 'No address'}</p>
+            <div class="mt-2"><span class="text-xs font-bold px-3 py-1 rounded-full border ${rating.color}">${rating.text}</span></div>
         </div>
         
         <div class="bg-red-50 border border-red-100 rounded-2xl p-4 text-center mb-6">
@@ -953,7 +1000,6 @@ window.viewCustomerProfile = function(custId) {
         </div>
     `;
     openModal('profileModal');
-};
     // ✅ NEW: Send Debt History via WhatsApp / Telegram / SMS
 window.sendDebtHistory = async function(custId) {
     const cust = customersList.find(c => c.id === custId); 
