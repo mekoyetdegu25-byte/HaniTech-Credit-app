@@ -1255,9 +1255,62 @@ window.deletePriceListItem = async function(itemId) {
 };
 
 function renderSettings(container) {
-    let html = `<h3 class="text-lg font-bold text-slate-800 mb-4">Settings</h3><div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-4"><div class="p-4 border-b border-slate-100 flex justify-between items-center"><div><p class="font-bold text-slate-800 text-sm">Language / ቋንቋ</p><p class="text-xs text-slate-500">Change app language</p></div><select id="langSelect" onchange="changeLanguage(this.value)" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-semibold"><option value="am" ${currentLang === 'am' ? 'selected' : ''}>አማርኛ</option><option value="en" ${currentLang === 'en' ? 'selected' : ''}>English</option></select></div><div class="p-4 border-b border-slate-100 flex justify-between items-center"><div><p class="font-bold text-slate-800 text-sm">Dark Mode</p><p class="text-xs text-slate-500">Switch to dark theme</p></div><label class="toggle-switch"><input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode(this.checked)" ${document.body.classList.contains('dark-mode') ? 'checked' : ''}><span class="slider"></span></label></div><div class="p-4 border-b border-slate-100"><p class="font-bold text-slate-800 text-sm">Shop Profile</p><div class="mt-2"><input type="text" id="settingShopName" value="${shopName}" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 mb-2"><input type="tel" id="settingShopPhone" value="${shopPhone}" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 mb-2"><button onclick="saveShopProfile()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-sm">Save Profile</button></div></div><div class="p-4"><p class="font-bold text-slate-800 text-sm mb-2">Data Backup (CSV)</p><button onclick="exportDataToCSV()" class="w-full bg-emerald-50 text-emerald-600 font-bold py-3 rounded-xl border border-emerald-100 flex items-center justify-center gap-2"><i class="fa-solid fa-download"></i> Download All Data</button></div></div>`;
-    if (currentUserRole === 'owner') html += `<div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-4"><div class="p-4"><p class="font-bold text-slate-800 text-sm mb-3">Manage Employees</p><button onclick="openModal('employeeModal')" class="w-full bg-purple-50 text-purple-600 font-bold py-3 rounded-xl border border-purple-100 flex items-center justify-center gap-2"><i class="fa-solid fa-user-plus"></i> Add New Employee</button></div></div>`;
-        // ✅ Danger Zone (ዳታ ማጽጃ)
+    let html = `
+        <h3 class="text-lg font-bold text-slate-800 mb-4">Settings</h3>
+        
+        <!-- Language & Dark Mode -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-4">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+                <div>
+                    <p class="font-bold text-slate-800 text-sm">Language / ቋንቋ</p>
+                    <p class="text-xs text-slate-500">Change app language</p>
+                </div>
+                <select id="langSelect" onchange="changeLanguage(this.value)" class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-semibold">
+                    <option value="am" ${currentLang === 'am' ? 'selected' : ''}>አማርኛ</option>
+                    <option value="en" ${currentLang === 'en' ? 'selected' : ''}>English</option>
+                </select>
+            </div>
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+                <div>
+                    <p class="font-bold text-slate-800 text-sm">Dark Mode</p>
+                    <p class="text-xs text-slate-500">Switch to dark theme</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode(this.checked)" ${document.body.classList.contains('dark-mode') ? 'checked' : ''}>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="p-4 border-b border-slate-100">
+                <p class="font-bold text-slate-800 text-sm">Shop Profile</p>
+                <div class="mt-2">
+                    <input type="text" id="settingShopName" value="${shopName}" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 mb-2">
+                    <input type="tel" id="settingShopPhone" value="${shopPhone}" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500 mb-2">
+                    <button onclick="saveShopProfile()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-sm">Save Profile</button>
+                </div>
+            </div>
+            <div class="p-4">
+                <p class="font-bold text-slate-800 text-sm mb-2">Data Backup (CSV)</p>
+                <button onclick="exportDataToCSV()" class="w-full bg-emerald-50 text-emerald-600 font-bold py-3 rounded-xl border border-emerald-100 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-download"></i> Download All Data
+                </button>
+            </div>
+        </div>
+    `;
+    
+    if (currentUserRole === 'owner') {
+        html += `
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-4">
+            <div class="p-4">
+                <p class="font-bold text-slate-800 text-sm mb-3">Manage Employees</p>
+                <button onclick="openModal('employeeModal')" class="w-full bg-purple-50 text-purple-600 font-bold py-3 rounded-xl border border-purple-100 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-user-plus"></i> Add New Employee
+                </button>
+            </div>
+        </div>
+        `;
+    }
+    
+    // ✅ Danger Zone (ዳታ ማጽጃ)
     html += `
     <div class="bg-red-50 rounded-2xl border border-red-200 shadow-sm overflow-hidden mb-4 mt-6">
         <div class="p-4 border-b border-red-200 bg-red-100">
@@ -1271,7 +1324,12 @@ function renderSettings(container) {
         </div>
     </div>
     `;
-    html += `<button onclick="logout()" class="w-full bg-red-50 text-red-600 font-bold py-4 rounded-2xl border border-red-100 flex items-center justify-center gap-2 mt-4"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</button>`;
+    
+    html += `
+        <button onclick="logout()" class="w-full bg-red-50 text-red-600 font-bold py-4 rounded-2xl border border-red-100 flex items-center justify-center gap-2 mt-4">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+        </button>
+    `;
     container.innerHTML = html;
 }
     // ✅ NEW: Clear All Data (Except Price List)
