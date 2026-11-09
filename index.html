@@ -781,17 +781,6 @@ window.setDashboardFilter = function(filter) {
 };
 
 function renderHome(container) {
-    // ✅ ዳታው ከመጣ በፊት Loading አሳይ
-    if (customersList.length === 0 && salesList.length === 0) {
-        container.innerHTML = `
-            <div class="flex flex-col items-center justify-center py-20">
-                <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p class="text-slate-500 font-semibold">መረጃ በመጫን ላይ...</p>
-            </div>
-        `;
-        return;
-    }
-
     const debts = calculateCustomerDebts(); 
     const totalDebt = Object.values(debts).reduce((a, b) => a + b, 0);
     const today = new Date(); 
@@ -809,7 +798,39 @@ function renderHome(container) {
     if (overdueCount > 0) {
         alertHtml = `<div class="bg-red-50 border border-red-200 rounded-2xl p-4 mb-4 flex items-center gap-3 shadow-sm cursor-pointer" onclick="showOverdueList()"><div class="w-10 h-10 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-xl"><i class="fa-solid fa-triangle-exclamation"></i></div><div class="flex-1"><h4 class="font-bold text-red-700 text-sm">የ 30 ቀን በላይ ዕዳ አለ!</h4><p class="text-xs text-red-600 mt-1"><span class="font-bold">${overdueCount}</span> ደንበኞች ከወር በላይ ሳይከፍሉ ቀርተዋል። ዝርዝሩን ለማየት ይጫኑ።</p></div><i class="fa-solid fa-chevron-right text-red-400"></i></div>`;
     }
-    let html = `${alertHtml}<div class="grid grid-cols-2 gap-4 mb-6"><div class="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl p-4 text-white shadow-lg shadow-red-500/30 col-span-2"><p class="text-red-100 text-xs font-medium mb-1">${translations[currentLang].total_debt} (All Time)</p><h3 class="text-3xl font-bold">${totalDebt.toLocaleString()} <span class="text-sm font-normal">ETB</span></h3></div><div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm col-span-2"><p class="text-slate-500 text-xs font-medium mb-1">${translations[currentLang].total_customers}</p><h3 class="text-xl font-bold text-slate-800">${customersList.length}</h3></div></div><h3 class="text-sm font-bold text-slate-800 mb-3">Quick Actions</h3><div class="grid grid-cols-2 gap-4"><div class="action-card" onclick="openCreditSale()"><div class="action-icon bg-grad-3"><i class="fa-solid fa-cart-shopping"></i></div><span class="text-xs font-semibold text-slate-700 text-center" data-lang="new_credit">${translations[currentLang].new_credit}</span></div><div class="action-card" onclick="openPayment()"><div class="action-icon bg-grad-2"><i class="fa-solid fa-hand-holding-dollar"></i></div><span class="text-xs font-semibold text-slate-700 text-center" data-lang="record_payment">${translations[currentLang].record_payment}</span></div><div class="action-card" onclick="switchView('customers', document.querySelectorAll('.nav-item')[1])"><div class="action-icon bg-grad-1"><i class="fa-solid fa-users"></i></div><span class="text-xs font-semibold text-slate-700 text-center" data-lang="customer_list">${translations[currentLang].customer_list}</span></div><div class="action-card" onclick="switchView('dashboard')"><div class="action-icon bg-grad-5"><i class="fa-solid fa-chart-pie"></i></div><span class="text-xs font-semibold text-slate-700 text-center">Dashboard</span></div></div>`;
+    
+    let html = `
+        ${alertHtml}
+        <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl p-4 text-white shadow-lg shadow-red-500/30 col-span-2">
+                <p class="text-red-100 text-xs font-medium mb-1">${translations[currentLang].total_debt} (All Time)</p>
+                <h3 class="text-3xl font-bold">${totalDebt.toLocaleString()} <span class="text-sm font-normal">ETB</span></h3>
+            </div>
+            <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm col-span-2">
+                <p class="text-slate-500 text-xs font-medium mb-1">${translations[currentLang].total_customers}</p>
+                <h3 class="text-xl font-bold text-slate-800">${customersList.length}</h3>
+            </div>
+        </div>
+        <h3 class="text-sm font-bold text-slate-800 mb-3">Quick Actions</h3>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="action-card" onclick="openCreditSale()">
+                <div class="action-icon bg-grad-3"><i class="fa-solid fa-cart-shopping"></i></div>
+                <span class="text-xs font-semibold text-slate-700 text-center" data-lang="new_credit">${translations[currentLang].new_credit}</span>
+            </div>
+            <div class="action-card" onclick="openPayment()">
+                <div class="action-icon bg-grad-2"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                <span class="text-xs font-semibold text-slate-700 text-center" data-lang="record_payment">${translations[currentLang].record_payment}</span>
+            </div>
+            <div class="action-card" onclick="switchView('customers', document.querySelectorAll('.nav-item')[1])">
+                <div class="action-icon bg-grad-1"><i class="fa-solid fa-users"></i></div>
+                <span class="text-xs font-semibold text-slate-700 text-center" data-lang="customer_list">${translations[currentLang].customer_list}</span>
+            </div>
+            <div class="action-card" onclick="switchView('dashboard')">
+                <div class="action-icon bg-grad-5"><i class="fa-solid fa-chart-pie"></i></div>
+                <span class="text-xs font-semibold text-slate-700 text-center">Dashboard</span>
+            </div>
+        </div>
+    `;
     container.innerHTML = html;
 }
 window.showOverdueList = function() {
