@@ -440,6 +440,8 @@ let cart = [];
 let currentLang = 'en';
 let confirmationResult = null;
 let currentFilter = 'today'; 
+let customDashDate = '';  // ✅ አዲስ
+let customDashMonth = ''; // ✅ አዲስ 
 
 // Pagination State
 let customerPage = 1; const customerRowsPerPage = 10;
@@ -589,7 +591,15 @@ window.switchView = function(viewName, navElement) {
     if (viewName === 'home') renderHome(main); else if (viewName === 'customers') renderCustomers(main); else if (viewName === 'history') renderHistory(main); else if (viewName === 'pricelist') renderPriceListTab(main); else if (viewName === 'settings') renderSettings(main); else if (viewName === 'dashboard') renderDashboardPage(main);
 };
 
-window.setDashboardFilter = function(filter) { currentFilter = filter; renderDashboardPage(document.getElementById('mainContent')); };
+window.setDashboardFilter = function(filter) { 
+    currentFilter = filter; 
+    if(filter === 'custom_date') {
+        customDashDate = document.getElementById('dashCustomDate').value;
+    } else if(filter === 'custom_month') {
+        customDashMonth = document.getElementById('dashCustomMonth').value;
+    }
+    renderDashboardPage(document.getElementById('mainContent')); 
+};
 window.setCustomDashboardDate = function() { currentFilter = 'custom'; renderDashboardPage(document.getElementById('mainContent')); };
 
 function renderHome(container) {
@@ -1044,13 +1054,14 @@ window.exportDataToCSV = function() {
 window.changeLanguage = function(lang) { currentLang = lang; applyLanguage(); const activeNav = document.querySelector('.nav-item.active'); if(activeNav) switchView('settings', activeNav); };
 
 function renderDashboardPage(container) {
-    const debts = calculateCustomerDebts(); const totalDebt = Object.values(debts).reduce((a, b) => a + b, 0);
-    const now = new Date(); const todayStr = now.toISOString().split('T')[0]; const currentMonth = now.getMonth(); const currentYear = now.getFullYear();
+    const debts = calculateCustomerDebts(); 
+    const totalDebt = Object.values(debts).reduce((a, b) => a + b, 0);
+    const now = new Date(); 
+    const todayStr = now.toISOString().split('T')[0]; 
+    const currentMonth = now.getMonth(); 
+    const currentYear = now.getFullYear();
     
     let filteredDebt = 0;
-    
-    const customDateVal = document.getElementById('dashCustomDate') ? document.getElementById('dashCustomDate').value : '';
-    const customMonthVal = document.getElementById('dashCustomMonth') ? document.getElementById('dashCustomMonth').value : '';
 
     salesList.forEach(s => { 
         const unpaid = (s.totalAmount || 0) - (s.paidAmount || 0); 
@@ -1060,39 +1071,52 @@ function renderDashboardPage(container) {
             if (currentFilter === 'month' && d.getMonth() === currentMonth && d.getFullYear() === currentYear) filteredDebt += unpaid; 
             if (currentFilter === 'year' && d.getFullYear() === currentYear) filteredDebt += unpaid; 
             if (currentFilter === 'all') filteredDebt += unpaid; 
-            if (currentFilter === 'custom_date' && s.date === customDateVal) filteredDebt += unpaid;
-            if (currentFilter === 'custom_month' && s.date.startsWith(customMonthVal)) filteredDebt += unpaid;
+            if (currentFilter === 'custom_date' && s.date === customDashDate) filteredDebt += unpaid;
+            if (currentFilter === 'custom_month' && s.date.startsWith(customDashMonth)) filteredDebt += unpaid;
         } 
     });
     
     let filterLabel = currentFilter === 'today' ? "Today's" : currentFilter === 'month' ? "This Month's" : currentFilter === 'year' ? "This Year's" : currentFilter === 'custom_date' ? "Custom Date" : currentFilter === 'custom_month' ? "Custom Month" : "Total";
 
-    let html = `<h3 class="text-lg font-bold mb-4" style="color: var(--text-color);">Dashboard</h3>
-    <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl p-4 text-white shadow-lg shadow-red-500/30 mb-4"><p class="text-red-100 text-xs font-medium mb-1">${translations[currentLang].total_debt} (All Time)</p><h3 class="text-3xl font-bold">${totalDebt.toLocaleString()} <span class="text-sm font-normal">ETB</span></h3></div>
-    
-    <div class="flex justify-between bg-white p-2 rounded-xl border border-slate-100 mb-4">
-        <button onclick="setDashboardFilter('today')" class="flex-1 py-2 text-xs font-bold rounded-lg ${currentFilter === 'today' ? 'bg-blue-100 text-blue-600' : 'text-slate-500'}">Today</button>
-        <button onclick="setDashboardFilter('month')" class="flex-1 py-2 text-xs font-bold rounded-lg ${currentFilter === 'month' ? 'bg-blue-100 text-blue-600' : 'text-slate-500'}">Month</button>
-        <button onclick="setDashboardFilter('year')" class="flex-1 py-2 text-xs font-bold rounded-lg ${currentFilter === 'year' ? 'bg-blue-100 text-blue-600' : 'text-slate-500'}">Year</button>
-        <button onclick="setDashboardFilter('all')" class="flex-1 py-2 text-xs font-bold rounded-lg ${currentFilter === 'all' ? 'bg-blue-100 text-blue-600' : 'text-slate-500'}">All</button>
-    </div>
+    let html = `
+        <h3 class="text-lg font-bold mb-4" style="color: var(--text-color);">Dashboard</h3>
+        
+        <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl p-4 text-white shadow-lg shadow-red-500/30 mb-4">
+            <p class="text-red-100 text-xs font-medium mb-1">${translations[currentLang].total_debt} (All Time)</p>
+            <h3 class="text-3xl font-bold">${totalDebt.toLocaleString()} <span class="text-sm font-normal">ETB</span></h3>
+        </div>
+        
+        <div class="flex justify-between bg-white p-2 rounded-xl border border-slate-100 mb-4">
+            <button onclick="setDashboardFilter('today')" class="flex-1 py-2 text-xs font-bold rounded-lg ${currentFilter === 'today' ? 'bg-blue-100 text-blue-600' : 'text-slate-500'}">Today</button>
+            <button onclick="setDashboardFilter('month')" class="flex-1 py-2 text-xs font-bold rounded-lg ${currentFilter === 'month' ? 'bg-blue-100 text-blue-600' : 'text-slate-500'}">Month</button>
+            <button onclick="setDashboardFilter('year')" class="flex-1 py-2 text-xs font-bold rounded-lg ${currentFilter === 'year' ? 'bg-blue-100 text-blue-600' : 'text-slate-500'}">Year</button>
+            <button onclick="setDashboardFilter('all')" class="flex-1 py-2 text-xs font-bold rounded-lg ${currentFilter === 'all' ? 'bg-blue-100 text-blue-600' : 'text-slate-500'}">All</button>
+        </div>
 
-    <div class="bg-white p-4 rounded-xl border border-slate-100 mb-4">
-        <p class="text-xs font-bold text-slate-500 mb-2">Custom Filter</p>
-        <div class="grid grid-cols-2 gap-2">
-            <div>
-                <label class="text-xs text-slate-400 block mb-1">Date</label>
-                <input type="date" id="dashCustomDate" onchange="setDashboardFilter('custom_date')" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs">
-            </div>
-            <div>
-                <label class="text-xs text-slate-400 block mb-1">Month</label>
-                <input type="month" id="dashCustomMonth" onchange="setDashboardFilter('custom_month')" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs">
+        <div class="bg-white p-4 rounded-xl border border-slate-100 mb-4">
+            <p class="text-xs font-bold text-slate-500 mb-2">Custom Filter</p>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Date</label>
+                    <input type="date" id="dashCustomDate" value="${customDashDate}" onchange="setDashboardFilter('custom_date')" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs">
+                </div>
+                <div>
+                    <label class="text-xs text-slate-400 block mb-1">Month</label>
+                    <input type="month" id="dashCustomMonth" value="${customDashMonth}" onchange="setDashboardFilter('custom_month')" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs">
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm mb-4"><p class="text-slate-500 text-xs font-medium mb-1">${filterLabel} Debt</p><h3 class="text-2xl font-bold text-amber-500">${filteredDebt.toLocaleString()} ETB</h3></div>
-    <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm mb-4"><p class="text-slate-500 text-xs font-medium mb-1">${translations[currentLang].total_customers}</p><h3 class="text-xl font-bold text-slate-800">${customersList.length}</h3></div>`;
+        <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm mb-4">
+            <p class="text-slate-500 text-xs font-medium mb-1">${filterLabel} Debt</p>
+            <h3 class="text-2xl font-bold text-amber-500">${filteredDebt.toLocaleString()} ETB</h3>
+        </div>
+        
+        <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm mb-4">
+            <p class="text-slate-500 text-xs font-medium mb-1">${translations[currentLang].total_customers}</p>
+            <h3 class="text-xl font-bold text-slate-800">${customersList.length}</h3>
+        </div>
+    `;
     container.innerHTML = html;
 }
 if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('service-worker.js').then(registration => { console.log('SW registered: ', registration); }).catch(registrationError => { console.log('SW registration failed: ', registrationError); }); }); }
