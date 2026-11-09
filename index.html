@@ -66,7 +66,7 @@
 
 <!-- AUTH SCREEN -->
 <div id="authScreen" class="fixed inset-0 z-40 flex flex-col justify-center px-6 hidden" style="background-color: var(--bg-color);">
-    <div id="loginFormView">
+        <div id="loginFormView">
         <div class="text-center mb-8">
             <img src="logo.png" alt="Logo" class="w-16 h-16 rounded-2xl mx-auto mb-4 shadow-lg object-cover">
             <h1 class="text-2xl font-bold" style="color: var(--text-color);">Welcome Back</h1>
@@ -83,8 +83,10 @@
             </div>
             <div id="loginError" class="text-red-500 text-sm text-center mb-4 hidden font-medium"></div>
             <button onclick="login()" id="loginBtn" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-600/30 active:scale-95 transition-transform">Sign In</button>
+            
             <div class="flex justify-between mt-4">
-                <button onclick="showRegister()" class="text-blue-600 text-sm font-semibold">Create Account</button>
+                <!-- ✅ አዲስ: Create Account ሲነካ Contact Admin ያሳያል -->
+                <button onclick="showContactAdmin()" class="text-blue-600 text-sm font-semibold">Create Account</button>
                 <button onclick="showForgotPassword()" class="text-slate-500 text-sm font-semibold">Forgot Password?</button>
             </div>
         </div>
@@ -464,7 +466,18 @@ function applyLanguage() {
     if(currentUser) { const activeNav = document.querySelector('.nav-item.active'); if(activeNav) { const viewName = activeNav.querySelector('span').getAttribute('data-lang'); if (viewName) switchView(viewName, activeNav); } }
 }
 
-window.showRegister = function() { document.getElementById('loginFormView').classList.add('hidden'); document.getElementById('registerFormView').classList.remove('hidden'); document.getElementById('forgotFormView').classList.add('hidden'); };
+window.showContactAdmin = function() {
+    // ✅ የድጋፍ መረጃውን ከ Firebase አምጥቶ በ Modal ውስጥ ያሳያል
+    const lpEl = document.getElementById('loginSupportPhone');
+    const leEl = document.getElementById('loginSupportEmail');
+    const ltEl = document.getElementById('loginSupportTelegram');
+    
+    if(lpEl) lpEl.innerText = globalSupportInfo.phone || 'Not set';
+    if(leEl) leEl.innerText = globalSupportInfo.email || 'Not set';
+    if(ltEl) ltEl.innerText = globalSupportInfo.telegram || 'Not set';
+    
+    document.getElementById('contactAdminModal').classList.add('open');
+};
 window.showLogin = function() { document.getElementById('registerFormView').classList.add('hidden'); document.getElementById('loginFormView').classList.remove('hidden'); document.getElementById('forgotFormView').classList.add('hidden'); document.getElementById('forgotPhoneStep').classList.remove('hidden'); document.getElementById('forgotOtpStep').classList.add('hidden'); };
 window.showForgotPassword = function() { document.getElementById('loginFormView').classList.add('hidden'); document.getElementById('registerFormView').classList.add('hidden'); document.getElementById('forgotFormView').classList.remove('hidden'); };
 
@@ -486,6 +499,40 @@ window.updateTempPassword = async function() {
         alert('❌ ስህተት: ' + error.message);
     }
 };
+    <!-- ✅ NEW: Contact Admin Modal -->
+<div class="modal-overlay" id="contactAdminModal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-slate-800">📞 Contact Admin</h3>
+            <button onclick="closeModal('contactAdminModal')" class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="space-y-3">
+            <p class="text-sm text-slate-500 mb-4">አካውንት ለመክፈት እባክዎ የሚከተሉትን የድጋፍ መረጃዎች በመጠቀም አስተዳዳሪውን ያግኙ፦</p>
+            
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex items-center gap-3">
+                <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center"><i class="fa-solid fa-phone"></i></div>
+                <div>
+                    <p class="text-xs text-slate-500">Phone</p>
+                    <p class="font-bold text-slate-800" id="loginSupportPhone">Loading...</p>
+                </div>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex items-center gap-3">
+                <div class="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center"><i class="fa-solid fa-envelope"></i></div>
+                <div>
+                    <p class="text-xs text-slate-500">Email</p>
+                    <p class="font-bold text-slate-800" id="loginSupportEmail">Loading...</p>
+                </div>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 flex items-center gap-3">
+                <div class="w-8 h-8 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center"><i class="fa-brands fa-telegram"></i></div>
+                <div>
+                    <p class="text-xs text-slate-500">Telegram</p>
+                    <p class="font-bold text-slate-800" id="loginSupportTelegram">Loading...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 // ✅ NEW: Change Password
 window.changePassword = async function() {
@@ -684,6 +731,14 @@ async function loadSupportInfo() {
         const supportDoc = await getDoc(doc(db, 'settings', 'support'));
         if (supportDoc.exists()) {
             globalSupportInfo = supportDoc.data();
+            
+            // Settings ገፅ ላይ ማሳየት
+            const pEl = document.getElementById('supportPhone');
+            const eEl = document.getElementById('supportEmail');
+            const tEl = document.getElementById('supportTelegram');
+            if(pEl) pEl.innerText = globalSupportInfo.phone || 'Not set';
+            if(eEl) eEl.innerText = globalSupportInfo.email || 'Not set';
+            if(tEl) tEl.innerText = globalSupportInfo.telegram || 'Not set';
         }
     } catch(e) { console.log("Support info error:", e); }
 }
