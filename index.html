@@ -493,15 +493,53 @@ window.login = async function() {
 };
 
 window.register = async function() {
-    const shop = document.getElementById('regShopName').value.trim(); const phone = document.getElementById('regPhone').value.trim(); const pass = document.getElementById('regPassword').value; const errEl = document.getElementById('regError'); const btn = document.getElementById('regBtn');
-    errEl.classList.add('hidden'); if(!shop || !phone || !pass) { errEl.innerText = "Fill all fields"; errEl.classList.remove('hidden'); return; }
+    const shop = document.getElementById('regShopName').value.trim(); 
+    const phone = document.getElementById('regPhone').value.trim(); 
+    const pass = document.getElementById('regPassword').value; 
+    const errEl = document.getElementById('regError'); 
+    const btn = document.getElementById('regBtn');
+    
+    errEl.classList.add('hidden'); 
+    if(!shop || !phone || !pass) { errEl.innerText = "Fill all fields"; errEl.classList.remove('hidden'); return; }
     if(pass.length < 6) { errEl.innerText = "Password must be at least 6 characters"; errEl.classList.remove('hidden'); return; }
-    const email = `${phone}@creditapp.com`; btn.innerText = "Creating..."; btn.disabled = true;
+    
+    const email = `${phone}@creditapp.com`; 
+    btn.innerText = "Creating..."; 
+    btn.disabled = true;
+    
     try {
         const userCred = await createUserWithEmailAndPassword(auth, email, pass);
-        await setDoc(doc(db, 'users', userCred.user.uid), { role: 'owner', phone: phone, shopId: userCred.user.uid, shopName: shop, createdAt: serverTimestamp() });
+        const uid = userCred.user.uid;
+
+        // 1. የተጠቃሚ መረጃ መመዝገብ (users)
+        await setDoc(doc(db, 'users', uid), { 
+            role: 'owner', 
+            phone: phone, 
+            shopId: uid, 
+            shopName: shop, 
+            createdAt: serverTimestamp() 
+        });
+
+        // 2. ✅ አዲስ: የሱቅ መረጃ መመዝገብ (shops) - ለ Admin Panel
+        await setDoc(doc(db, 'shops', uid), {
+            shopId: uid,
+            shopName: shop,
+            phone: phone,
+            ownerEmail: email,
+            status: 'active', // 'active' ወይም 'suspended'
+            amount: 0, // የክፍያ መጠን (Admin ላይ ይስተካከላል)
+            expiryDate: new Date().toISOString().split('T')[0], // ዛሬ እንዲጀምር
+            paymentHistory: [],
+            createdAt: new Date().toISOString()
+        });
+
         showToast("Account created successfully!");
-    } catch (e) { errEl.innerText = e.message; errEl.classList.remove('hidden'); btn.innerText = "Create Account"; btn.disabled = false; }
+    } catch (e) { 
+        errEl.innerText = e.message; 
+        errEl.classList.remove('hidden'); 
+        btn.innerText = "Create Account"; 
+        btn.disabled = false; 
+    }
 };
 
 window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'invisible' });
@@ -578,6 +616,42 @@ async function loadData() {
     const qPay = query(collection(db, 'payments'), where('shopId', '==', currentShopId)); const snapPay = await getDocs(qPay); paymentsList = []; snapPay.forEach(doc => paymentsList.push({ id: doc.id, ...doc.data() }));
     const qPrice = query(collection(db, 'priceList'), where('shopId', '==', currentShopId)); const snapPrice = await getDocs(qPrice); priceList = []; snapPrice.forEach(doc => priceList.push({ id: doc.id, ...doc.data() }));
     updateItemDatalist();
+        await checkSubscriptionStatus();
+}
+    // ✅ NEW: Check Subscription / Trial Status
+async function checkSubscriptionStatus() {
+    if (!currentShopId) return;
+    try {
+        const shopDoc = await getDoc(doc(db, 'shops', currentShopId));
+        if (shopDoc.exists()) {
+            const shopData = shopDoc.data();
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            
+            // 1. አካውንቱ ከተቆለፈ (Suspended)
+            if (shopData.status === 'suspended') {
+                alert("⚠️ አካውንትዎ ተቆልፏል። እባክዎ አስተዳዳሪውን ያግኙ።");
+                await signOut(auth);
+                return;
+            }
+
+            // 2. የሙከራ/ክፍያ ጊዜ ማረጋገጥ
+            if (shopData.expiryDate) {
+                const expiry = new Date(shopData.expiryDate);
+                expiry.setHours(0,0,0,0);
+                const diffDays = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+
+                if (diffDays < 0) {
+                    // ጊዜው አልፏል
+                    alert("🚨 የሙከራ/ክፍያ ጊዜዎ አልፏል! እባክዎ አስተዳዳሪውን ያግኙ።");
+                    await signOut(auth);
+                } else if (diffDays <= 3) {
+                    // ሊያልቅ ነው (3 ቀናት ወይም ከዚያ በታች ሲቀር)
+                    showToast(`⚠️ የሙከራ/ክፍያ ጊዜዎ በ ${diffDays} ቀናት ውስጥ ያበቃል!`, true);
+                }
+            }
+        }
+    } catch (e) { console.log("Subscription check error:", e); }
 }
 
 function updateItemDatalist() {
