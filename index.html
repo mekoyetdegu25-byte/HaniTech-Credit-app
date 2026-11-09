@@ -1240,7 +1240,7 @@ function renderDashboardPage(container) {
         if (currentFilter === 'custom_month' && s.date.startsWith(customDashMonth)) matchesFilter = true;
 
         if (matchesFilter) {
-            // ✅ ትክክለኛው ስሌት: ያልተከፈለውን ብቻ መደመር
+            // ✅ ትክክለኛው ስሌት: ያልተከፈለውን ብቻ መደመር (Gross - Paid)
             const unpaid = (s.totalAmount || 0) - (s.paidAmount || 0); 
             filteredDebt += unpaid; 
             filteredPaid += (s.paidAmount || 0); 
