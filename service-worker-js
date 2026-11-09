@@ -3,10 +3,10 @@ const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
+  './logo.png', // ✅ አዲስ
   'https://cdn.tailwindcss.com',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Ethiopic:wght@400;500;600;700&display=swap',
-  'https://i.ibb.co/3s6H1yC/hy-logo.jpg'
+  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Ethiopic:wght@400;500;600;700&display=swap'
 ];
 
 self.addEventListener('install', (event) => {
