@@ -584,8 +584,22 @@ function updateItemDatalist() {
 
 function calculateCustomerDebts() {
     const debts = {};
-    salesList.forEach(s => { const paid = s.paidAmount || 0; const unpaid = s.totalAmount - paid; if (unpaid > 0) { if (!debts[s.customerId]) debts[s.customerId] = 0; debts[s.customerId] += unpaid; } });
-    paymentsList.forEach(p => { if (debts[p.customerId] !== undefined) { debts[p.customerId] -= p.amount; if (debts[p.customerId] <= 0) delete debts[p.customerId]; } });
+    // ሁሉንም ሽያጮች መደመር
+    salesList.forEach(s => { 
+        const paid = s.paidAmount || 0; 
+        const unpaid = s.totalAmount - paid; 
+        if (unpaid > 0) { 
+            if (!debts[s.customerId]) debts[s.customerId] = 0; 
+            debts[s.customerId] += unpaid; 
+        } 
+    });
+    // የተከፈሉ ክፍያዎችን መቀነስ (ከሽያጭ ውጪ የተመዘገቡ ካሉ)
+    paymentsList.forEach(p => { 
+        if (debts[p.customerId] !== undefined) { 
+            debts[p.customerId] -= p.amount; 
+            if (debts[p.customerId] <= 0) delete debts[p.customerId]; 
+        } 
+    });
     return debts;
 }
 
@@ -1211,8 +1225,8 @@ function renderDashboardPage(container) {
     const currentYear = now.getFullYear();
     
     let filteredDebt = 0;
-    let filteredPaid = 0; // ✅ አዲስ: የተከፈለ ገንዘብ መጠን
-    let filteredExpense = 0; // ✅ አዲስ: ወጪ መጠን
+    let filteredPaid = 0; 
+    let filteredExpense = 0; 
 
     salesList.forEach(s => { 
         const d = new Date(s.date); 
@@ -1226,9 +1240,10 @@ function renderDashboardPage(container) {
         if (currentFilter === 'custom_month' && s.date.startsWith(customDashMonth)) matchesFilter = true;
 
         if (matchesFilter) {
+            // ✅ ትክክለኛው ስሌት: ያልተከፈለውን ብቻ መደመር
             const unpaid = (s.totalAmount || 0) - (s.paidAmount || 0); 
-            filteredDebt += unpaid; // ያልተከፈለ ዕዳ
-            filteredPaid += (s.paidAmount || 0); // የተከፈለ ገንዘብ
+            filteredDebt += unpaid; 
+            filteredPaid += (s.paidAmount || 0); 
         }
     });
 
