@@ -32,7 +32,6 @@
     .bg-grad-3 { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
     .bg-grad-4 { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
     .bg-grad-5 { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; }
-    .bg-grad-6 { background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; }
 
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-around; padding: 10px 0; padding-bottom: env(safe-area-inset-bottom); z-index: 50; }
     .nav-item { display: flex; flex-direction: column; align-items: center; color: #94a3b8; font-size: 10px; font-weight: 500; cursor: pointer; transition: color 0.2s; }
@@ -197,7 +196,6 @@
         <i class="fa-solid fa-clock-rotate-left"></i>
         <span data-lang="history">History</span>
     </div>
-    <!-- ✅ NEW: Price List Tab -->
     <div class="nav-item" onclick="switchView('pricelist', this)">
         <i class="fa-solid fa-tags"></i>
         <span>Price List</span>
@@ -209,9 +207,10 @@
 </div>
 
 <!-- MODALS -->
+<!-- New Credit Sale (Cart System) -->
 <div class="modal-overlay" id="creditSaleModal">
     <div class="modal-content">
-        <div class="flex justify-between items-center mb-6">
+        <div class="flex justify-between items-center mb-4">
             <h3 class="text-lg font-bold text-slate-800" data-lang="new_credit">New Credit Sale</h3>
             <button onclick="closeModal('creditSaleModal')" class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark"></i></button>
         </div>
@@ -226,44 +225,65 @@
             </div>
         </div>
 
-        <div class="input-group">
-            <label data-lang="item_name">Item Name / Description</label>
-            <!-- ✅ Autocomplete from Price List -->
-            <input type="text" id="saleItemName" placeholder="Search item or type..." list="itemDatalist" onchange="autoFillItemPrice()" class="bg-slate-50">
-            <datalist id="itemDatalist"></datalist>
-        </div>
-        
-        <div class="grid grid-cols-2 gap-4">
-            <div class="input-group">
-                <label>Quantity (መጠን)</label>
-                <input type="number" id="saleQty" placeholder="0" class="bg-slate-50">
+        <!-- Add Item to Cart Area -->
+        <div class="border border-slate-200 rounded-xl p-4 mb-4 bg-slate-50">
+            <div class="input-group mb-2">
+                <label class="text-xs">Item Name (የዕቃ ስም)</label>
+                <input type="text" id="saleItemName" placeholder="Search item..." list="itemDatalist" onchange="autoFillItemPrice()" class="bg-white">
+                <datalist id="itemDatalist"></datalist>
             </div>
-            <div class="input-group">
-                <label>Unit (መለኪያ)</label>
-                <select id="saleUnit" class="bg-slate-50">
-                    <option value="piece">Piece (ቁራጭ)</option>
-                    <option value="kg">Kilogram (ኪሎ)</option>
-                    <option value="liter">Liter (ሊትር)</option>
-                    <option value="pack">Pack (ጥቅል)</option>
-                </select>
+            <div class="grid grid-cols-2 gap-2 mb-2">
+                <div>
+                    <label class="text-xs block mb-1">Qty (መጠን)</label>
+                    <input type="number" id="saleQty" placeholder="0" class="bg-white w-full p-2 border rounded-lg" oninput="calcCartItemTotal()">
+                </div>
+                <div>
+                    <label class="text-xs block mb-1">Unit (መለኪያ)</label>
+                    <select id="saleUnit" class="bg-white w-full p-2 border rounded-lg">
+                        <option value="piece">Piece</option>
+                        <option value="kg">Kg</option>
+                        <option value="liter">Liter</option>
+                        <option value="pack">Pack</option>
+                    </select>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 items-end">
+                <div>
+                    <label class="text-xs block mb-1">Total (ETB)</label>
+                    <input type="number" id="saleTotalAmount" placeholder="0.00" class="bg-white w-full p-2 border rounded-lg" readonly>
+                </div>
+                <button onclick="addToSaleCart()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-sm active:scale-95 transition-transform">+ Add to Cart</button>
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
-            <div class="input-group">
-                <label data-lang="total_amount">Total (ETB)</label>
-                <input type="number" id="saleTotalAmount" placeholder="0.00" class="bg-slate-50">
-            </div>
-            <div class="input-group">
-                <label data-lang="paid_amount">Paid Now (ETB)</label>
-                <input type="number" id="salePaidAmount" placeholder="0.00" class="bg-slate-50">
+        <!-- Cart List -->
+        <div class="mb-4">
+            <h4 class="text-xs font-bold text-slate-500 mb-2">Cart Items</h4>
+            <div id="saleCartList" class="space-y-2 max-h-40 overflow-y-auto hide-scrollbar">
+                <!-- Cart items will appear here -->
+                <p class="text-center text-xs text-slate-400 py-2">No items added yet.</p>
             </div>
         </div>
-        <div class="input-group">
-            <label data-lang="date">Date</label>
-            <input type="date" id="saleDate" class="bg-slate-50">
+
+        <!-- Checkout Summary -->
+        <div class="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-4">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-sm font-semibold text-slate-700">Grand Total:</span>
+                <span id="saleGrandTotal" class="text-xl font-bold text-amber-600">0.00 ETB</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="text-xs block mb-1">Paid Now (ETB)</label>
+                    <input type="number" id="salePaidAmount" placeholder="0.00" class="bg-white w-full p-2 border rounded-lg">
+                </div>
+                <div>
+                    <label class="text-xs block mb-1">Date</label>
+                    <input type="date" id="saleDate" class="bg-white w-full p-2 border rounded-lg">
+                </div>
+            </div>
         </div>
-        <button onclick="saveCreditSale()" class="w-full bg-amber-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-amber-500/30 active:scale-95 transition-transform" data-lang="save">Save Sale</button>
+
+        <button onclick="saveCreditSale()" class="w-full bg-emerald-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-500/30 active:scale-95 transition-transform">Save All Sales</button>
     </div>
 </div>
 
@@ -323,7 +343,39 @@
     </div>
 </div>
 
-<script type="module">
+<!-- Edit Price List Item Modal -->
+<div class="modal-overlay" id="editPriceModal">
+    <div class="modal-content">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-bold text-slate-800">Edit Item</h3>
+            <button onclick="closeModal('editPriceModal')" class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <input type="hidden" id="editItemId">
+        <div class="input-group">
+            <label>Item Name</label>
+            <input type="text" id="editItemName" class="bg-slate-50">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="input-group">
+                <label>Price (ETB)</label>
+                <input type="number" id="editItemPrice" class="bg-slate-50">
+            </div>
+            <div class="input-group">
+                <label>Unit</label>
+                <select id="editItemUnit" class="bg-slate-50">
+                    <option value="piece">Piece</option>
+                    <option value="kg">Kilogram</option>
+                    <option value="liter">Liter</option>
+                    <option value="pack">Pack</option>
+                </select>
+            </div>
+        </div>
+        <button onclick="updatePriceListItem()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-600/30 active:scale-95 transition-transform">Save Changes</button>
+    </div>
+</div>
+
+<!-- SCRIPT SECTION (ይህ በ index.html ውስጥ በታች ይገባል) -->
+    <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber, updatePassword } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, query, where, doc, getDoc, setDoc, deleteDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js"; 
@@ -343,7 +395,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app); 
 
-// ⚠️ የእርስዎ VAPID Key
 const VAPID_KEY = "BNLbkd5N91CUux9s1O5LasZcccd8xmM5GeIInrZmydbAJ2cFb8u2YLcUigK3DaaOcUOCbvFnOZtikN0rkvkcATU"; 
 
 let currentUser = null;
@@ -354,8 +405,10 @@ let customersList = [];
 let salesList = [];
 let paymentsList = [];
 let priceList = [];
+let cart = []; // ✅ New Cart Array
 let currentLang = 'en';
 let confirmationResult = null;
+let currentFilter = 'today'; // ✅ Dashboard Filter
 
 const translations = {
     en: {
@@ -543,6 +596,7 @@ onAuthStateChanged(auth, async (user) => {
             if (userDoc.exists()) {
                 const uData = userDoc.data();
                 currentUserRole = uData.role || 'owner';
+                // ✅ Employee gets their owner's shop ID
                 currentShopId = uData.shopId || user.uid;
                 shopName = uData.shopName || "My Shop";
                 
@@ -575,7 +629,7 @@ onAuthStateChanged(auth, async (user) => {
 
 window.logout = function() { signOut(auth); };
 
-// ✅ Employee Creation (Owner only)
+// ✅ Employee Creation
 window.saveEmployee = async function() {
     if (currentUserRole !== 'owner') { showToast("Only owners can add employees", true); return; }
     const name = document.getElementById('empName').value.trim();
@@ -594,7 +648,7 @@ window.saveEmployee = async function() {
             role: 'employee', 
             name: name,
             phone: phone, 
-            shopId: currentShopId, 
+            shopId: currentShopId, // ✅ Links to Owner's Shop
             shopName: shopName, 
             createdAt: serverTimestamp()
         });
@@ -627,7 +681,6 @@ async function loadData() {
     paymentsList = [];
     snapPay.forEach(doc => paymentsList.push({ id: doc.id, ...doc.data() }));
 
-    // ✅ Load Price List
     const qPrice = query(collection(db, 'priceList'), where('shopId', '==', currentShopId));
     const snapPrice = await getDocs(qPrice);
     priceList = [];
@@ -636,7 +689,6 @@ async function loadData() {
     updateItemDatalist();
 }
 
-// ✅ Update Datalist for New Sale
 function updateItemDatalist() {
     const datalist = document.getElementById('itemDatalist');
     if (!datalist) return;
@@ -677,7 +729,12 @@ window.switchView = function(viewName, navElement) {
     else if (viewName === 'settings') renderSettings(main);
 };
 
-// ✅ Dashboard (Numbers only + Today & Monthly Debt)
+// ✅ Dashboard with Filters
+window.setDashboardFilter = function(filter) {
+    currentFilter = filter;
+    renderHome(document.getElementById('mainContent'));
+};
+
 function renderHome(container) {
     const debts = calculateCustomerDebts();
     const totalDebt = Object.values(debts).reduce((a, b) => a + b, 0);
@@ -687,35 +744,41 @@ function renderHome(container) {
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
     
-    let todayDebt = 0;
-    let monthDebt = 0;
+    let filteredDebt = 0;
     
-    // Calculate Debts by Date
     salesList.forEach(s => {
         const unpaid = (s.totalAmount || 0) - (s.paidAmount || 0);
         if (unpaid > 0) {
             const d = new Date(s.date);
-            if (s.date === todayStr) todayDebt += unpaid;
-            if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) monthDebt += unpaid;
+            if (currentFilter === 'today' && s.date === todayStr) filteredDebt += unpaid;
+            if (currentFilter === 'month' && d.getMonth() === currentMonth && d.getFullYear() === currentYear) filteredDebt += unpaid;
+            if (currentFilter === 'year' && d.getFullYear() === currentYear) filteredDebt += unpaid;
+            if (currentFilter === 'all') filteredDebt += unpaid;
         }
     });
+
+    let filterLabel = currentFilter === 'today' ? "Today's" : currentFilter === 'month' ? "This Month's" : currentFilter === 'year' ? "This Year's" : "Total";
 
     let html = `
         <div class="grid grid-cols-2 gap-4 mb-6">
             <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl p-4 text-white shadow-lg shadow-red-500/30 col-span-2">
-                <p class="text-red-100 text-xs font-medium mb-1">${translations[currentLang].total_debt}</p>
+                <p class="text-red-100 text-xs font-medium mb-1">${translations[currentLang].total_debt} (All Time)</p>
                 <h3 class="text-3xl font-bold">${totalDebt.toLocaleString()} <span class="text-sm font-normal">ETB</span></h3>
             </div>
             
-            <!-- ✅ New Debt Cards -->
-            <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
-                <p class="text-slate-500 text-xs font-medium mb-1">Today's Debt (የዛሬ ዕዳ)</p>
-                <h3 class="text-lg font-bold text-amber-500">${todayDebt.toLocaleString()} ETB</h3>
+            <!-- ✅ Filter Buttons -->
+            <div class="col-span-2 flex justify-between bg-white p-2 rounded-xl border border-slate-100">
+                <button onclick="setDashboardFilter('today')" class="flex-1 py-2 text-xs font-bold rounded-lg ${currentFilter === 'today' ? 'bg-blue-100 text-blue-600' : 'text-slate-500'}">Today</button>
+                <button onclick="setDashboardFilter('month')" class="flex-1 py-2 text-xs font-bold rounded-lg ${currentFilter === 'month' ? 'bg-blue-100 text-blue-600' : 'text-slate-500'}">Month</button>
+                <button onclick="setDashboardFilter('year')" class="flex-1 py-2 text-xs font-bold rounded-lg ${currentFilter === 'year' ? 'bg-blue-100 text-blue-600' : 'text-slate-500'}">Year</button>
+                <button onclick="setDashboardFilter('all')" class="flex-1 py-2 text-xs font-bold rounded-lg ${currentFilter === 'all' ? 'bg-blue-100 text-blue-600' : 'text-slate-500'}">All</button>
             </div>
-            <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
-                <p class="text-slate-500 text-xs font-medium mb-1">Monthly Debt (የወር ዕዳ)</p>
-                <h3 class="text-lg font-bold text-blue-500">${monthDebt.toLocaleString()} ETB</h3>
+
+            <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm col-span-2">
+                <p class="text-slate-500 text-xs font-medium mb-1">${filterLabel} Debt</p>
+                <h3 class="text-2xl font-bold text-amber-500">${filteredDebt.toLocaleString()} ETB</h3>
             </div>
+            
             <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm col-span-2">
                 <p class="text-slate-500 text-xs font-medium mb-1">${translations[currentLang].total_customers}</p>
                 <h3 class="text-xl font-bold text-slate-800">${customersList.length}</h3>
@@ -735,34 +798,96 @@ function renderHome(container) {
                 <div class="action-icon bg-grad-1"><i class="fa-solid fa-users"></i></div>
                 <span class="text-xs font-semibold text-slate-700 text-center" data-lang="customer_list">${translations[currentLang].customer_list}</span>
             </div>
-            ${currentUserRole === 'owner' ? `
-            <div class="action-card" onclick="openModal('employeeModal')">
-                <div class="action-icon bg-grad-5"><i class="fa-solid fa-user-tie"></i></div>
-                <span class="text-xs font-semibold text-slate-700 text-center">Add Employee</span>
-            </div>
-            ` : ''}
         </div>
     `;
     container.innerHTML = html;
 }
 
-// ✅ Auto Fill Price when Item is Selected
+// ✅ Cart Logic
 window.autoFillItemPrice = function() {
     const itemName = document.getElementById('saleItemName').value.trim();
     const foundItem = priceList.find(i => i.name.toLowerCase() === itemName.toLowerCase());
     if (foundItem) {
-        document.getElementById('saleTotalAmount').value = foundItem.price;
         document.getElementById('saleUnit').value = foundItem.unit || 'piece';
+        calcCartItemTotal(); // Calculate total based on qty * price
     }
 };
 
-window.openCreditSale = function() {
-    document.getElementById('saleDate').value = new Date().toISOString().split('T')[0];
-    document.getElementById('saleCustomerName').value = '';
-    document.getElementById('saleCustomerPhone').value = '';
+window.calcCartItemTotal = function() {
+    const itemName = document.getElementById('saleItemName').value.trim();
+    const qty = parseFloat(document.getElementById('saleQty').value) || 0;
+    const foundItem = priceList.find(i => i.name.toLowerCase() === itemName.toLowerCase());
+    
+    if (foundItem && qty > 0) {
+        document.getElementById('saleTotalAmount').value = (foundItem.price * qty).toFixed(2);
+    } else {
+        document.getElementById('saleTotalAmount').value = '';
+    }
+};
+
+window.addToSaleCart = function() {
+    const itemName = document.getElementById('saleItemName').value.trim();
+    const qty = parseFloat(document.getElementById('saleQty').value);
+    const unit = document.getElementById('saleUnit').value;
+    const total = parseFloat(document.getElementById('saleTotalAmount').value);
+    
+    if (!itemName || isNaN(qty) || qty <= 0 || isNaN(total) || total <= 0) {
+        showToast("Please enter valid item and quantity", true); return;
+    }
+    
+    cart.push({ name: itemName, qty: qty, unit: unit, total: total });
+    
+    // Clear inputs
     document.getElementById('saleItemName').value = '';
     document.getElementById('saleQty').value = '';
     document.getElementById('saleTotalAmount').value = '';
+    
+    renderSaleCart();
+};
+
+window.renderSaleCart = function() {
+    const list = document.getElementById('saleCartList');
+    const grandTotalEl = document.getElementById('saleGrandTotal');
+    if (!list) return;
+
+    if (cart.length === 0) {
+        list.innerHTML = `<p class="text-center text-xs text-slate-400 py-2">No items added yet.</p>`;
+        grandTotalEl.innerText = '0.00 ETB';
+        return;
+    }
+
+    let html = '';
+    let grandTotal = 0;
+    cart.forEach((item, index) => {
+        grandTotal += item.total;
+        html += `
+            <div class="flex justify-between items-center bg-white p-2 rounded border border-slate-200 text-sm">
+                <div>
+                    <p class="font-bold text-slate-700">${item.name}</p>
+                    <p class="text-xs text-slate-500">${item.qty} ${item.unit} x ${(item.total/item.qty).toFixed(2)} ETB</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="font-bold text-amber-600">${item.total.toFixed(2)}</span>
+                    <button onclick="removeFromSaleCart(${index})" class="text-red-500 w-6 h-6 flex items-center justify-center bg-red-50 rounded"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+        `;
+    });
+    list.innerHTML = html;
+    grandTotalEl.innerText = grandTotal.toLocaleString() + ' ETB';
+};
+
+window.removeFromSaleCart = function(index) {
+    cart.splice(index, 1);
+    renderSaleCart();
+};
+
+window.openCreditSale = function() {
+    cart = [];
+    renderSaleCart();
+    document.getElementById('saleDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('saleCustomerName').value = '';
+    document.getElementById('saleCustomerPhone').value = '';
     document.getElementById('salePaidAmount').value = '';
     openModal('creditSaleModal');
 };
@@ -781,18 +906,15 @@ window.openPayment = function() {
     openModal('paymentModal');
 };
 
+// ✅ Save Multiple Items in One Sale
 window.saveCreditSale = async function() {
     const custName = document.getElementById('saleCustomerName').value.trim();
     const custPhone = document.getElementById('saleCustomerPhone').value.trim();
-    const itemName = document.getElementById('saleItemName').value.trim();
-    const qty = parseFloat(document.getElementById('saleQty').value) || 0;
-    const unit = document.getElementById('saleUnit').value;
-    const total = parseFloat(document.getElementById('saleTotalAmount').value);
     const paid = parseFloat(document.getElementById('salePaidAmount').value) || 0;
     const date = document.getElementById('saleDate').value;
     
-    if (!custName || !custPhone || !itemName || isNaN(total) || total <= 0 || !date) {
-        showToast("Fill all fields correctly", true); return;
+    if (!custName || !custPhone || cart.length === 0 || !date) {
+        showToast("Fill customer info and add items to cart", true); return;
     }
     
     try {
@@ -807,14 +929,30 @@ window.saveCreditSale = async function() {
             });
             customerId = newCustRef.id;
         }
+
+        let grandTotal = cart.reduce((sum, item) => sum + item.total, 0);
+        let remainingPaid = paid;
+
+        // Loop through cart and save each item
+        for (let i = 0; i < cart.length; i++) {
+            const item = cart[i];
+            // Distribute paid amount proportionally (for simplicity, we apply to first item or divide)
+            let itemPaid = 0;
+            if (i === 0) itemPaid = Math.min(remainingPaid, item.total); // Apply paid to first item
+            else if (remainingPaid > 0) {
+                itemPaid = Math.min(remainingPaid, item.total);
+                remainingPaid -= itemPaid;
+            }
+
+            await addDoc(collection(db, 'sales'), {
+                customerId: customerId, customerName: custName, customerPhone: custPhone,
+                itemName: item.name, quantity: item.qty, unit: item.unit, 
+                totalAmount: item.total, paidAmount: itemPaid,
+                date: date, shopId: currentShopId, createdAt: serverTimestamp()
+            });
+        }
         
-        await addDoc(collection(db, 'sales'), {
-            customerId: customerId, customerName: custName, customerPhone: custPhone,
-            itemName: itemName, quantity: qty, unit: unit, totalAmount: total, paidAmount: paid,
-            date: date, shopId: currentShopId, createdAt: serverTimestamp()
-        });
-        
-        showToast("Sale recorded successfully!");
+        showToast("All sales recorded successfully!");
         closeModal('creditSaleModal');
         await loadData();
         switchView('home');
@@ -980,7 +1118,6 @@ window.deleteCustomer = async function(custId) {
     } catch(e) { showToast(e.message, true); }
 };
 
-// ✅ History with Date Filter
 function renderHistory(container) {
     let html = `
         <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-4">
@@ -1056,7 +1193,7 @@ window.clearHistoryFilter = function() {
     renderHistoryItems();
 };
 
-// ✅ NEW: Price List Tab
+// ✅ Price List Tab with Edit
 function renderPriceListTab(container) {
     let html = `
         <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-4">
@@ -1099,8 +1236,9 @@ function renderPriceList() {
                     <h4 class="font-bold text-slate-800 text-sm">${item.name}</h4>
                     <p class="text-xs text-slate-500 capitalize">${item.unit}</p>
                 </div>
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2">
                     <span class="font-bold text-blue-600 text-sm">${item.price} ETB</span>
+                    <button onclick="openEditPriceModal('${item.id}')" class="text-blue-500 w-8 h-8 flex items-center justify-center bg-blue-50 rounded-full"><i class="fa-solid fa-pen text-xs"></i></button>
                     <button onclick="deletePriceListItem('${item.id}')" class="text-red-500 w-8 h-8 flex items-center justify-center bg-red-50 rounded-full"><i class="fa-solid fa-trash text-xs"></i></button>
                 </div>
             </div>
@@ -1128,6 +1266,33 @@ window.addItemToPriceList = async function() {
     } catch(e) { showToast(e.message, true); }
 };
 
+window.openEditPriceModal = function(itemId) {
+    const item = priceList.find(i => i.id === itemId);
+    if (!item) return;
+    document.getElementById('editItemId').value = item.id;
+    document.getElementById('editItemName').value = item.name;
+    document.getElementById('editItemPrice').value = item.price;
+    document.getElementById('editItemUnit').value = item.unit;
+    openModal('editPriceModal');
+};
+
+window.updatePriceListItem = async function() {
+    const id = document.getElementById('editItemId').value;
+    const name = document.getElementById('editItemName').value.trim();
+    const price = parseFloat(document.getElementById('editItemPrice').value);
+    const unit = document.getElementById('editItemUnit').value;
+
+    if (!name || isNaN(price) || price <= 0) { showToast("Enter valid name and price", true); return; }
+
+    try {
+        await updateDoc(doc(db, 'priceList', id), { name: name, price: price, unit: unit });
+        closeModal('editPriceModal');
+        await loadData();
+        renderPriceList();
+        showToast("Item updated!");
+    } catch(e) { showToast(e.message, true); }
+};
+
 window.deletePriceListItem = async function(itemId) {
     if (!confirm("Delete this item from price list?")) return;
     try {
@@ -1138,7 +1303,6 @@ window.deletePriceListItem = async function(itemId) {
     } catch(e) { showToast(e.message, true); }
 };
 
-// ✅ Settings
 function renderSettings(container) {
     let html = `
         <h3 class="text-lg font-bold text-slate-800 mb-4">Settings</h3>
