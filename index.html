@@ -663,12 +663,10 @@ async function loadData() {
     priceList = []; 
     snapPrice.forEach(doc => priceList.push({ id: doc.id, ...doc.data() }));
     
-    updateItemDatalist();
-        // ✅ NEW: Support Info አስቀድሞ መጫን (ለ Settings ፍጥነት)
-    await loadSupportInfo(); 
-    await checkSubscriptionBanner();
+        updateItemDatalist();
     
-    await loadSupportInfo();
+    // ✅ NEW: Support Info እና Banner አስቀድሞ መጫን
+    await loadSupportInfo(); 
     await checkSubscriptionBanner();
 }
 
@@ -766,8 +764,6 @@ window.switchView = function(viewName, navElement) {
     else if (viewName === 'history') renderHistory(main); 
     else if (viewName === 'pricelist') renderPriceListTab(main); 
     else if (viewName === 'settings') renderSettings(main); // ✅ አሁን ወዲያውኑ ይሳላል
-    else if (viewName === 'dashboard') renderDashboardPage(main);
-};
     else if (viewName === 'dashboard') renderDashboardPage(main);
 };
 
