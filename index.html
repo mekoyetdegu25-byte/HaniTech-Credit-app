@@ -306,9 +306,9 @@
             <button onclick="closeModal('paymentModal')" class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark"></i></button>
         </div>
         
-        <div class="input-group relative">
+        <div class="input-group">
             <label data-lang="select_customer">Search Customer (በስም ፈልግ)</label>
-            <input type="text" id="paymentCustomerSearch" placeholder="Type name..." oninput="filterPaymentCustomerSelect()" class="bg-slate-50 mb-2">
+            <input type="text" id="paymentSearchInput" placeholder="Type name..." oninput="searchPaymentCustomer()" class="bg-slate-50 mb-2">
             <label data-lang="select_customer">Select Customer</label>
             <select id="paymentCustomerSelect" class="bg-slate-50" onchange="loadCustomerDebtsForPayment()"></select>
         </div>
@@ -402,7 +402,7 @@
 </div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber, updatePassword } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, query, where, doc, getDoc, setDoc, deleteDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js"; 
 
@@ -655,13 +655,13 @@ window.openPayment = function() {
     const debts = calculateCustomerDebts();
     customersList.forEach(c => { if (debts[c.id] > 0) sel.innerHTML += `<option value="${c.id}">${c.name} (${debts[c.id].toLocaleString()} ETB)</option>`; });
     document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0]; document.getElementById('paymentAmount').value = ''; 
-    document.getElementById('paymentCustomerSearch').value = ''; 
+    document.getElementById('paymentSearchInput').value = ''; 
     document.getElementById('customerDebtList').innerHTML = '';
     openModal('paymentModal');
 };
 
-window.filterPaymentCustomerSelect = function() {
-    const searchVal = document.getElementById('paymentCustomerSearch').value.toLowerCase();
+window.searchPaymentCustomer = function() {
+    const searchVal = document.getElementById('paymentSearchInput').value.toLowerCase();
     const sel = document.getElementById('paymentCustomerSelect');
     sel.innerHTML = '<option value="">-- Select Customer --</option>';
     const debts = calculateCustomerDebts();
@@ -713,6 +713,18 @@ window.saveCreditSale = async function() {
             const item = cart[i]; let itemPaid = 0;
             if (i === 0) itemPaid = Math.min(remainingPaid, item.total); else if (remainingPaid > 0) { itemPaid = Math.min(remainingPaid, item.total); remainingPaid -= itemPaid; }
             await addDoc(collection(db, 'sales'), { customerId: customerId, customerName: custName, customerPhone: custPhone || '-', itemName: item.name, quantity: item.qty, unit: item.unit, totalAmount: item.total, paidAmount: itemPaid, date: date, shopId: currentShopId, createdAt: serverTimestamp() });
+
+            // ✅ NEW: Price List ላይ የሌለ እቃ ከሆነ በራሱ ወደ Price List ይጨመራል
+            const priceExists = priceList.find(p => p.name.toLowerCase() === item.name.toLowerCase());
+            if (!priceExists) {
+                await addDoc(collection(db, 'priceList'), { 
+                    name: item.name, 
+                    price: item.total / item.qty, 
+                    unit: item.unit, 
+                    shopId: currentShopId, 
+                    createdAt: serverTimestamp() 
+                });
+            }
         }
         showToast("All sales recorded successfully!"); closeModal('creditSaleModal'); await loadData(); switchView('home');
     } catch(e) { showToast(e.message, true); }
@@ -804,9 +816,55 @@ window.viewCustomerProfile = function(custId) {
     let history = []; cSales.forEach(s => history.push({ type: 'sale', date: s.date, amount: s.totalAmount, note: `${s.itemName} (${s.quantity} ${s.unit})` })); cPayments.forEach(p => history.push({ type: 'payment', date: p.date, amount: p.amount, note: 'Payment' })); history.sort((a, b) => b.date.localeCompare(a.date));
     let historyHtml = history.length === 0 ? `<p class="text-center text-slate-400 text-sm py-4">No transactions yet.</p>` : history.map(h => `<div class="flex justify-between items-center py-3 border-b border-slate-100 last:border-0"><div><p class="font-semibold text-slate-800 text-sm">${h.note}</p><p class="text-xs text-slate-500">${h.date}</p></div><p class="font-bold ${h.type === 'sale' ? 'text-amber-500' : 'text-emerald-500'}">${h.type === 'sale' ? '+' : '-'} ${h.amount.toLocaleString()} ETB</p></div>`).join('');
     const content = document.getElementById('profileContent');
-    content.innerHTML = `<div class="flex justify-end gap-2 mb-2"><button onclick="editCustomer('${cust.id}')" class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-600"><i class="fa-solid fa-pen"></i></button><button onclick="deleteCustomer('${cust.id}')" class="w-8 h-8 bg-red-50 rounded-full flex items-center justify-center text-red-500"><i class="fa-solid fa-trash"></i></button></div><div class="text-center mb-6"><div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 font-bold text-2xl mx-auto mb-3">${cust.name.charAt(0).toUpperCase()}</div><h3 class="font-bold text-slate-800 text-lg">${cust.name}</h3><p class="text-sm text-slate-500">${cust.phone || '-'}</p></div><div class="bg-red-50 border border-red-100 rounded-2xl p-4 text-center mb-6"><p class="text-xs text-red-600 font-semibold mb-1">Current Debt (ዕዳ)</p><h3 class="text-2xl font-bold text-red-600">${currentDebt.toLocaleString()} ETB</h3></div><h4 class="font-bold text-slate-800 text-sm mb-3">Transaction History</h4><div class="bg-white rounded-2xl border border-slate-100 p-2 max-h-60 overflow-y-auto hide-scrollbar">${historyHtml}</div>`;
+    content.innerHTML = `
+        <div class="flex justify-end gap-2 mb-2">
+            <button onclick="editCustomer('${cust.id}')" class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-600"><i class="fa-solid fa-pen"></i></button>
+            <button onclick="deleteCustomer('${cust.id}')" class="w-8 h-8 bg-red-50 rounded-full flex items-center justify-center text-red-500"><i class="fa-solid fa-trash"></i></button>
+        </div>
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 font-bold text-2xl mx-auto mb-3">${cust.name.charAt(0).toUpperCase()}</div>
+            <h3 class="font-bold text-slate-800 text-lg">${cust.name}</h3>
+            <p class="text-sm text-slate-500">${cust.phone || '-'}</p>
+        </div>
+        <div class="bg-red-50 border border-red-100 rounded-2xl p-4 text-center mb-6">
+            <p class="text-xs text-red-600 font-semibold mb-1">Current Debt (ዕዳ)</p>
+            <h3 class="text-2xl font-bold text-red-600">${currentDebt.toLocaleString()} ETB</h3>
+        </div>
+        
+        ${currentDebt > 0 ? `
+        <button onclick="closeModal('profileModal'); openPaymentForCustomer('${cust.id}')" class="w-full bg-emerald-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/30 mb-4 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-hand-holding-dollar"></i> Record Payment
+        </button>
+        ` : ''}
+
+        <h4 class="font-bold text-slate-800 text-sm mb-3">Transaction History</h4>
+        <div class="bg-white rounded-2xl border border-slate-100 p-2 max-h-60 overflow-y-auto hide-scrollbar">
+            ${historyHtml}
+        </div>
+    `;
     openModal('profileModal');
 };
+
+// ✅ NEW: Direct Payment for Customer from Profile
+window.openPaymentForCustomer = function(custId) {
+    const sel = document.getElementById('paymentCustomerSelect'); 
+    sel.innerHTML = '<option value="">-- Select Customer --</option>';
+    const debts = calculateCustomerDebts();
+    customersList.forEach(c => { 
+        if (debts[c.id] > 0) sel.innerHTML += `<option value="${c.id}">${c.name} (${debts[c.id].toLocaleString()} ETB)</option>`; 
+    });
+    
+    sel.value = custId;
+    
+    document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0]; 
+    document.getElementById('paymentAmount').value = ''; 
+    document.getElementById('paymentSearchInput').value = '';
+    
+    loadCustomerDebtsForPayment();
+    
+    openModal('paymentModal');
+};
+
 window.editCustomer = async function(custId) {
     const cust = customersList.find(c => c.id === custId); if (!cust) return;
     const newName = prompt("Enter new name:", cust.name); if (newName === null) return;
