@@ -10,7 +10,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Credit Tracker">
 
-<!-- PWA Manifest & Icons -->
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2966/2966327.png">
 
@@ -132,7 +131,6 @@
         </div>
         
         <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-            <!-- Step 1: Enter Phone -->
             <div id="forgotPhoneStep">
                 <div class="input-group">
                     <label>Phone Number (ስልክ ቁጥር)</label>
@@ -143,7 +141,6 @@
                 <button onclick="sendResetOTP()" id="sendResetBtn" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl active:scale-95 transition-transform">Send Code</button>
             </div>
 
-            <!-- Step 2: Verify OTP & New Password -->
             <div id="forgotOtpStep" class="hidden">
                 <div class="input-group">
                     <label>Enter 6-Digit Code (ኮድ)</label>
@@ -225,21 +222,38 @@
 
         <div class="input-group">
             <label data-lang="item_name">Item Name / Description</label>
-            <input type="text" id="saleItemName" placeholder="e.g. 2kg Sugar">
+            <input type="text" id="saleItemName" placeholder="e.g. Sugar" class="bg-slate-50">
         </div>
+        
+        <div class="grid grid-cols-2 gap-4">
+            <div class="input-group">
+                <label>Quantity (መጠን)</label>
+                <input type="number" id="saleQty" placeholder="0" class="bg-slate-50">
+            </div>
+            <div class="input-group">
+                <label>Unit (መለኪያ)</label>
+                <select id="saleUnit" class="bg-slate-50">
+                    <option value="piece">Piece (ቁራጭ)</option>
+                    <option value="kg">Kilogram (ኪሎ)</option>
+                    <option value="liter">Liter (ሊትር)</option>
+                    <option value="pack">Pack (ጥቅል)</option>
+                </select>
+            </div>
+        </div>
+
         <div class="grid grid-cols-2 gap-4">
             <div class="input-group">
                 <label data-lang="total_amount">Total (ETB)</label>
-                <input type="number" id="saleTotalAmount" placeholder="0.00">
+                <input type="number" id="saleTotalAmount" placeholder="0.00" class="bg-slate-50">
             </div>
             <div class="input-group">
                 <label data-lang="paid_amount">Paid Now (ETB)</label>
-                <input type="number" id="salePaidAmount" placeholder="0.00">
+                <input type="number" id="salePaidAmount" placeholder="0.00" class="bg-slate-50">
             </div>
         </div>
         <div class="input-group">
             <label data-lang="date">Date</label>
-            <input type="date" id="saleDate">
+            <input type="date" id="saleDate" class="bg-slate-50">
         </div>
         <button onclick="saveCreditSale()" class="w-full bg-amber-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-amber-500/30 active:scale-95 transition-transform" data-lang="save">Save Sale</button>
     </div>
@@ -253,20 +267,21 @@
         </div>
         <div class="input-group">
             <label data-lang="select_customer">Select Customer</label>
-            <select id="paymentCustomerSelect"></select>
+            <select id="paymentCustomerSelect" class="bg-slate-50"></select>
         </div>
         <div class="input-group">
             <label data-lang="amount">Amount Paid (ETB)</label>
-            <input type="number" id="paymentAmount" placeholder="0.00">
+            <input type="number" id="paymentAmount" placeholder="0.00" class="bg-slate-50">
         </div>
         <div class="input-group">
             <label data-lang="date">Date</label>
-            <input type="date" id="paymentDate">
+            <input type="date" id="paymentDate" class="bg-slate-50">
         </div>
         <button onclick="savePayment()" class="w-full bg-emerald-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-500/30 active:scale-95 transition-transform" data-lang="save">Save Payment</button>
     </div>
 </div>
 
+<!-- Employee Modal -->
 <div class="modal-overlay" id="employeeModal">
     <div class="modal-content">
         <div class="flex justify-between items-center mb-6">
@@ -275,16 +290,21 @@
         </div>
         <div class="input-group">
             <label>Employee Name (የሰራተኛ ስም)</label>
-            <input type="text" id="empName" placeholder="e.g. Kebede">
+            <input type="text" id="empName" placeholder="e.g. Kebede" class="bg-slate-50">
         </div>
         <div class="input-group">
             <label>Phone Number (ስልክ ቁጥር)</label>
-            <input type="tel" id="empPhone" placeholder="+251911223344">
+            <input type="tel" id="empPhone" placeholder="+251911223344" class="bg-slate-50">
+        </div>
+        <div class="input-group">
+            <label>Password (ፓስወርድ)</label>
+            <input type="password" id="empPassword" placeholder="Min 6 characters" class="bg-slate-50">
         </div>
         <button onclick="saveEmployee()" class="w-full bg-purple-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-purple-600/30 active:scale-95 transition-transform">Create Employee</button>
     </div>
 </div>
 
+<!-- Customer Profile Modal -->
 <div class="modal-overlay" id="profileModal">
     <div class="modal-content">
         <div class="flex justify-between items-center mb-4">
@@ -295,12 +315,34 @@
     </div>
 </div>
 
+<!-- Item Price List Modal -->
+<div class="modal-overlay" id="priceListModal">
+    <div class="modal-content">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-bold text-slate-800">Item Price List (የዕቃ ዝርዝር)</h3>
+            <button onclick="closeModal('priceListModal')" class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <div class="bg-slate-50 p-4 rounded-xl mb-4 border border-slate-200">
+            <div class="grid grid-cols-2 gap-2 mb-2">
+                <input type="text" id="newItemName" placeholder="Item Name" class="bg-white border border-slate-200 rounded-lg p-2 text-sm">
+                <input type="number" id="newItemPrice" placeholder="Price (ETB)" class="bg-white border border-slate-200 rounded-lg p-2 text-sm">
+            </div>
+            <button onclick="addItemToPriceList()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-sm">+ Add Item</button>
+        </div>
+
+        <div id="priceListContent" class="max-h-60 overflow-y-auto hide-scrollbar">
+            <!-- List will be rendered here -->
+        </div>
+    </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber, updatePassword } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, query, where, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js"; 
+import { getFirestore, collection, addDoc, getDocs, query, where, doc, getDoc, setDoc, deleteDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js"; 
 
-// ✅ የእርስዎ Firebase Config
+// ⚠️ የእርስዎ Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyC3h__9_0HMC0ebr8sFV5_v1fqholtBVFg",
   authDomain: "anitech-credit-app.firebaseapp.com",
@@ -315,8 +357,8 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app); 
 
-// ⚠️ የእርስዎ VAPID Key (ከ Firebase Console -> Cloud Messaging -> Web Push certificates)
-const VAPID_KEY = "YOUR_VAPID_KEY"; 
+// ⚠️ የእርስዎ VAPID Key
+const VAPID_KEY = "BNLbkd5N91CUux9s1O5LasZcccd8xmM5GeIInrZmydbAJ2cFb8u2YLcUigK3DaaOcUOCbvFnOZtikN0rkvkcATU"; 
 
 let currentUser = null;
 let currentShopId = null;
@@ -325,6 +367,7 @@ let shopName = "My Shop";
 let customersList = [];
 let salesList = [];
 let paymentsList = [];
+let priceList = [];
 let currentLang = 'en';
 let confirmationResult = null;
 
@@ -449,7 +492,6 @@ window.register = async function() {
     }
 };
 
-// OTP Logic
 window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'invisible' });
 
 window.sendResetOTP = async function() {
@@ -505,7 +547,6 @@ window.verifyResetOTP = async function() {
     }
 };
 
-
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         currentUser = user;
@@ -548,20 +589,39 @@ onAuthStateChanged(auth, async (user) => {
 
 window.logout = function() { signOut(auth); };
 
+// ✅ Employee Creation (Owner only)
 window.saveEmployee = async function() {
     if (currentUserRole !== 'owner') { showToast("Only owners can add employees", true); return; }
     const name = document.getElementById('empName').value.trim();
     const phone = document.getElementById('empPhone').value.trim();
-    if(!name || !phone) { showToast("Fill all fields", true); return; }
+    const pass = document.getElementById('empPassword').value;
+    
+    if(!name || !phone || !pass) { showToast("Fill all fields", true); return; }
+    if(pass.length < 6) { showToast("Password must be at least 6 characters", true); return; }
 
     try {
-        await addDoc(collection(db, 'pending_employees'), {
-            name: name, phone: phone, shopId: currentShopId, shopName: shopName, createdAt: serverTimestamp()
+        // Create User in Firebase Auth using Secondary App to avoid logging out owner
+        const secondaryApp = initializeApp(firebaseConfig, "Secondary");
+        const secondaryAuth = getAuth(secondaryApp);
+        const userCred = await createUserWithEmailAndPassword(secondaryAuth, `${phone}@creditapp.com`, pass);
+        
+        // Save Employee Data
+        await setDoc(doc(db, 'users', userCred.user.uid), {
+            role: 'employee', 
+            name: name,
+            phone: phone, 
+            shopId: currentShopId, 
+            shopName: shopName, 
+            createdAt: serverTimestamp()
         });
-        showToast("Employee invitation sent!");
+
+        await signOut(secondaryAuth); // Clean up
+        
+        showToast("Employee created successfully!");
         closeModal('employeeModal');
         document.getElementById('empName').value = '';
         document.getElementById('empPhone').value = '';
+        document.getElementById('empPassword').value = '';
     } catch (e) { showToast(e.message, true); }
 };
 
@@ -582,6 +642,11 @@ async function loadData() {
     const snapPay = await getDocs(qPay);
     paymentsList = [];
     snapPay.forEach(doc => paymentsList.push({ id: doc.id, ...doc.data() }));
+
+    const qPrice = query(collection(db, 'priceList'), where('shopId', '==', currentShopId));
+    const snapPrice = await getDocs(qPrice);
+    priceList = [];
+    snapPrice.forEach(doc => priceList.push({ id: doc.id, ...doc.data() }));
 }
 
 function calculateCustomerDebts() {
@@ -614,26 +679,50 @@ window.switchView = function(viewName, navElement) {
     else if (viewName === 'settings') renderSettings(main);
 };
 
+// ✅ Dashboard (Numbers only)
 function renderHome(container) {
     const debts = calculateCustomerDebts();
     const totalDebt = Object.values(debts).reduce((a, b) => a + b, 0);
-    const todayStr = new Date().toISOString().split('T')[0];
-    let todayPayments = 0;
-    paymentsList.forEach(p => { if (p.date === todayStr) todayPayments += p.amount; });
+    
+    // Month filter
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    
+    let monthSalesTotal = 0;
+    let monthPaymentsTotal = 0;
+    
+    salesList.forEach(s => {
+        const d = new Date(s.date);
+        if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+            monthSalesTotal += s.totalAmount;
+        }
+    });
+    
+    paymentsList.forEach(p => {
+        const d = new Date(p.date);
+        if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+            monthPaymentsTotal += p.amount;
+        }
+    });
 
     let html = `
         <div class="grid grid-cols-2 gap-4 mb-6">
-            <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl p-4 text-white shadow-lg shadow-red-500/30">
+            <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl p-4 text-white shadow-lg shadow-red-500/30 col-span-2">
                 <p class="text-red-100 text-xs font-medium mb-1">${translations[currentLang].total_debt}</p>
-                <h3 class="text-xl font-bold">${totalDebt.toLocaleString()} <span class="text-xs font-normal">ETB</span></h3>
+                <h3 class="text-3xl font-bold">${totalDebt.toLocaleString()} <span class="text-sm font-normal">ETB</span></h3>
             </div>
             <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
-                <p class="text-slate-500 text-xs font-medium mb-1">${translations[currentLang].total_customers}</p>
-                <h3 class="text-xl font-bold text-slate-800">${customersList.length}</h3>
+                <p class="text-slate-500 text-xs font-medium mb-1">This Month Sales</p>
+                <h3 class="text-lg font-bold text-amber-500">${monthSalesTotal.toLocaleString()}</h3>
+            </div>
+            <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
+                <p class="text-slate-500 text-xs font-medium mb-1">This Month Collected</p>
+                <h3 class="text-lg font-bold text-emerald-500">${monthPaymentsTotal.toLocaleString()}</h3>
             </div>
             <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm col-span-2">
-                <p class="text-slate-500 text-xs font-medium mb-1">${translations[currentLang].today_payments}</p>
-                <h3 class="text-xl font-bold text-emerald-500">${todayPayments.toLocaleString()} <span class="text-xs font-normal text-slate-400">ETB</span></h3>
+                <p class="text-slate-500 text-xs font-medium mb-1">${translations[currentLang].total_customers}</p>
+                <h3 class="text-xl font-bold text-slate-800">${customersList.length}</h3>
             </div>
         </div>
         <h3 class="text-sm font-bold text-slate-800 mb-3">Quick Actions</h3>
@@ -661,11 +750,13 @@ function renderHome(container) {
     container.innerHTML = html;
 }
 
+// ✅ Credit Sale with Quantity and Unit
 window.openCreditSale = function() {
     document.getElementById('saleDate').value = new Date().toISOString().split('T')[0];
     document.getElementById('saleCustomerName').value = '';
     document.getElementById('saleCustomerPhone').value = '';
     document.getElementById('saleItemName').value = '';
+    document.getElementById('saleQty').value = '';
     document.getElementById('saleTotalAmount').value = '';
     document.getElementById('salePaidAmount').value = '';
     openModal('creditSaleModal');
@@ -689,6 +780,8 @@ window.saveCreditSale = async function() {
     const custName = document.getElementById('saleCustomerName').value.trim();
     const custPhone = document.getElementById('saleCustomerPhone').value.trim();
     const itemName = document.getElementById('saleItemName').value.trim();
+    const qty = parseFloat(document.getElementById('saleQty').value) || 0;
+    const unit = document.getElementById('saleUnit').value;
     const total = parseFloat(document.getElementById('saleTotalAmount').value);
     const paid = parseFloat(document.getElementById('salePaidAmount').value) || 0;
     const date = document.getElementById('saleDate').value;
@@ -712,7 +805,7 @@ window.saveCreditSale = async function() {
         
         await addDoc(collection(db, 'sales'), {
             customerId: customerId, customerName: custName, customerPhone: custPhone,
-            itemName: itemName, totalAmount: total, paidAmount: paid,
+            itemName: itemName, quantity: qty, unit: unit, totalAmount: total, paidAmount: paid,
             date: date, shopId: currentShopId, createdAt: serverTimestamp()
         });
         
@@ -743,20 +836,27 @@ window.savePayment = async function() {
     } catch(e) { showToast(e.message, true); }
 };
 
+// ✅ Customer List with Search
 function renderCustomers(container) {
     const debts = calculateCustomerDebts();
-    let html = `<h3 class="text-lg font-bold text-slate-800 mb-4">${translations[currentLang].customer_list}</h3>`;
+    
+    let html = `
+        <div class="mb-4">
+            <input type="text" id="searchCustomer" placeholder="🔍 Search by name or phone..." oninput="filterCustomerList()" class="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500">
+        </div>
+        <h3 class="text-lg font-bold text-slate-800 mb-4">${translations[currentLang].customer_list}</h3>
+        <div id="customerListContainer" class="space-y-3">
+    `;
     
     if (customersList.length === 0) {
         html += `<div class="text-center text-slate-400 py-10"><i class="fa-solid fa-users-slash text-4xl mb-3"></i><p>${translations[currentLang].no_data}</p></div>`;
     } else {
-        html += `<div class="space-y-3">`;
         customersList.forEach(c => {
             const debt = debts[c.id] || 0;
             const debtColor = debt > 0 ? 'text-red-500' : 'text-emerald-500';
             const debtText = debt > 0 ? `${debt.toLocaleString()} ETB` : 'Paid';
             html += `
-                <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center" onclick="viewCustomerProfile('${c.id}')">
+                <div class="customer-card bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center" data-name="${c.name.toLowerCase()}" data-phone="${c.phone}" onclick="viewCustomerProfile('${c.id}')">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 font-bold">${c.name.charAt(0).toUpperCase()}</div>
                         <div>
@@ -771,11 +871,26 @@ function renderCustomers(container) {
                 </div>
             `;
         });
-        html += `</div>`;
     }
+    html += `</div>`;
     container.innerHTML = html;
 }
 
+window.filterCustomerList = function() {
+    const val = document.getElementById('searchCustomer').value.toLowerCase();
+    const cards = document.querySelectorAll('.customer-card');
+    cards.forEach(card => {
+        const name = card.getAttribute('data-name');
+        const phone = card.getAttribute('data-phone');
+        if (name.includes(val) || phone.includes(val)) {
+            card.style.display = 'flex';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+};
+
+// ✅ Customer Profile with Edit/Delete
 window.viewCustomerProfile = function(custId) {
     const cust = customersList.find(c => c.id === custId);
     if (!cust) return;
@@ -786,7 +901,7 @@ window.viewCustomerProfile = function(custId) {
     const currentDebt = debts[custId] || 0;
     
     let history = [];
-    cSales.forEach(s => history.push({ type: 'sale', date: s.date, amount: s.totalAmount, note: s.itemName }));
+    cSales.forEach(s => history.push({ type: 'sale', date: s.date, amount: s.totalAmount, note: `${s.itemName} (${s.quantity} ${s.unit})` }));
     cPayments.forEach(p => history.push({ type: 'payment', date: p.date, amount: p.amount, note: 'Payment' }));
     history.sort((a, b) => b.date.localeCompare(a.date));
     
@@ -809,6 +924,10 @@ window.viewCustomerProfile = function(custId) {
     
     const content = document.getElementById('profileContent');
     content.innerHTML = `
+        <div class="flex justify-end gap-2 mb-2">
+            <button onclick="editCustomer('${cust.id}')" class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-600"><i class="fa-solid fa-pen"></i></button>
+            <button onclick="deleteCustomer('${cust.id}')" class="w-8 h-8 bg-red-50 rounded-full flex items-center justify-center text-red-500"><i class="fa-solid fa-trash"></i></button>
+        </div>
         <div class="text-center mb-6">
             <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 font-bold text-2xl mx-auto mb-3">${cust.name.charAt(0).toUpperCase()}</div>
             <h3 class="font-bold text-slate-800 text-lg">${cust.name}</h3>
@@ -826,12 +945,65 @@ window.viewCustomerProfile = function(custId) {
     openModal('profileModal');
 };
 
+window.editCustomer = async function(custId) {
+    const cust = customersList.find(c => c.id === custId);
+    if (!cust) return;
+    
+    const newName = prompt("Enter new name:", cust.name);
+    if (newName === null) return; // Cancelled
+    
+    const newPhone = prompt("Enter new phone:", cust.phone);
+    if (newPhone === null) return;
+
+    if (!newName.trim() || !newPhone.trim()) { showToast("Name and phone cannot be empty", true); return; }
+
+    try {
+        await updateDoc(doc(db, 'customers', custId), { name: newName.trim(), phone: newPhone.trim() });
+        showToast("Customer updated successfully!");
+        closeModal('profileModal');
+        await loadData();
+        switchView('customers');
+    } catch(e) { showToast(e.message, true); }
+};
+
+window.deleteCustomer = async function(custId) {
+    if (!confirm("Are you sure you want to delete this customer? All associated sales and payments will remain but won't be linked to a customer.")) return;
+    try {
+        await deleteDoc(doc(db, 'customers', custId));
+        showToast("Customer deleted!");
+        closeModal('profileModal');
+        await loadData();
+        switchView('customers');
+    } catch(e) { showToast(e.message, true); }
+};
+
+// ✅ History with Date Filter
 function renderHistory(container) {
+    let html = `
+        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-4">
+            <label class="block text-xs font-semibold text-slate-500 mb-2">Filter by Date (በቀን ማጣሪያ)</label>
+            <input type="date" id="filterHistoryDate" onchange="filterHistoryByDate()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500">
+            <button onclick="clearHistoryFilter()" class="mt-2 text-xs text-blue-600 font-semibold">Clear Filter</button>
+        </div>
+        <h3 class="text-lg font-bold text-slate-800 mb-4">${translations[currentLang].history_title}</h3>
+        <div id="historyListContainer" class="space-y-3"></div>
+    `;
+    container.innerHTML = html;
+    renderHistoryItems();
+}
+
+function renderHistoryItems(filterDate = null) {
     let historyItems = [];
-    salesList.forEach(s => historyItems.push({ type: 'sale', date: s.date, amount: s.totalAmount, name: s.itemName, customerName: s.customerName, timestamp: s.timestamp }));
+    salesList.forEach(s => {
+        if (!filterDate || s.date === filterDate) {
+            historyItems.push({ type: 'sale', date: s.date, amount: s.totalAmount, name: `${s.itemName} (${s.quantity} ${s.unit})`, customerName: s.customerName, timestamp: s.timestamp });
+        }
+    });
     paymentsList.forEach(p => {
-        const c = customersList.find(x => x.id === p.customerId);
-        historyItems.push({ type: 'payment', date: p.date, amount: p.amount, name: 'Payment Received', customerName: c ? c.name : 'Unknown', timestamp: p.timestamp });
+        if (!filterDate || p.date === filterDate) {
+            const c = customersList.find(x => x.id === p.customerId);
+            historyItems.push({ type: 'payment', date: p.date, amount: p.amount, name: 'Payment Received', customerName: c ? c.name : 'Unknown', timestamp: p.timestamp });
+        }
     });
 
     historyItems.sort((a, b) => {
@@ -839,37 +1011,49 @@ function renderHistory(container) {
         return (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0);
     });
 
-    let html = `<h3 class="text-lg font-bold text-slate-800 mb-4">${translations[currentLang].history_title}</h3>`;
-    
+    const container = document.getElementById('historyListContainer');
+    if (!container) return;
+
     if (historyItems.length === 0) {
-        html += `<div class="text-center text-slate-400 py-10"><i class="fa-solid fa-clock text-4xl mb-3"></i><p>${translations[currentLang].no_data}</p></div>`;
-    } else {
-        html += `<div class="space-y-3">`;
-        historyItems.forEach(h => {
-            const isSale = h.type === 'sale';
-            const iconColor = isSale ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600';
-            const icon = isSale ? 'fa-cart-shopping' : 'fa-hand-holding-dollar';
-            const amountColor = isSale ? 'text-amber-600' : 'text-emerald-600';
-            const prefix = isSale ? '+' : '-';
-            
-            html += `
-                <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 ${iconColor} rounded-full flex items-center justify-center"><i class="fa-solid ${icon}"></i></div>
-                        <div>
-                            <h4 class="font-bold text-slate-800 text-sm">${h.name}</h4>
-                            <p class="text-xs text-slate-500">${h.customerName} | ${h.date}</p>
-                        </div>
-                    </div>
-                    <p class="font-bold ${amountColor} text-sm">${prefix} ${h.amount.toLocaleString()} ETB</p>
-                </div>
-            `;
-        });
-        html += `</div>`;
+        container.innerHTML = `<div class="text-center text-slate-400 py-10"><i class="fa-solid fa-clock text-4xl mb-3"></i><p>${translations[currentLang].no_data}</p></div>`;
+        return;
     }
+
+    let html = '';
+    historyItems.forEach(h => {
+        const isSale = h.type === 'sale';
+        const iconColor = isSale ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600';
+        const icon = isSale ? 'fa-cart-shopping' : 'fa-hand-holding-dollar';
+        const amountColor = isSale ? 'text-amber-600' : 'text-emerald-600';
+        const prefix = isSale ? '+' : '-';
+        
+        html += `
+            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 ${iconColor} rounded-full flex items-center justify-center"><i class="fa-solid ${icon}"></i></div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-sm">${h.name}</h4>
+                        <p class="text-xs text-slate-500">${h.customerName} | ${h.date}</p>
+                    </div>
+                </div>
+                <p class="font-bold ${amountColor} text-sm">${prefix} ${h.amount.toLocaleString()} ETB</p>
+            </div>
+        `;
+    });
     container.innerHTML = html;
 }
 
+window.filterHistoryByDate = function() {
+    const date = document.getElementById('filterHistoryDate').value;
+    renderHistoryItems(date || null);
+};
+
+window.clearHistoryFilter = function() {
+    document.getElementById('filterHistoryDate').value = '';
+    renderHistoryItems();
+};
+
+// ✅ Settings with Price List
 function renderSettings(container) {
     let html = `
         <h3 class="text-lg font-bold text-slate-800 mb-4">Settings</h3>
@@ -891,6 +1075,15 @@ function renderSettings(container) {
             <div class="p-4">
                 <p class="font-bold text-slate-800 text-sm">Role</p>
                 <p class="text-xs text-slate-500 mt-1 capitalize">${currentUserRole}</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-4">
+            <div class="p-4">
+                <p class="font-bold text-slate-800 text-sm mb-3">Item Price List (የዕቃ ዝርዝር)</p>
+                <button onclick="openPriceList()" class="w-full bg-blue-50 text-blue-600 font-bold py-3 rounded-xl border border-blue-100 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-list"></i> Manage Price List
+                </button>
             </div>
         </div>
     `;
@@ -923,9 +1116,62 @@ window.changeLanguage = function(lang) {
     if(activeNav) switchView('settings', activeNav);
 };
 
-// ==========================================
-// PWA SERVICE WORKER REGISTRATION
-// ==========================================
+// ✅ Price List Logic
+window.openPriceList = function() {
+    renderPriceList();
+    openModal('priceListModal');
+};
+
+function renderPriceList() {
+    const container = document.getElementById('priceListContent');
+    if (priceList.length === 0) {
+        container.innerHTML = `<p class="text-center text-slate-400 text-sm py-4">No items in price list.</p>`;
+        return;
+    }
+    let html = '';
+    priceList.forEach(item => {
+        html += `
+            <div class="flex justify-between items-center py-2 border-b border-slate-100 last:border-0">
+                <span class="font-semibold text-slate-700 text-sm">${item.name}</span>
+                <div class="flex items-center gap-3">
+                    <span class="font-bold text-blue-600 text-sm">${item.price} ETB</span>
+                    <button onclick="deletePriceListItem('${item.id}')" class="text-red-500 w-6 h-6 flex items-center justify-center"><i class="fa-solid fa-trash text-xs"></i></button>
+                </div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+window.addItemToPriceList = async function() {
+    const name = document.getElementById('newItemName').value.trim();
+    const price = parseFloat(document.getElementById('newItemPrice').value);
+    
+    if (!name || isNaN(price) || price <= 0) { showToast("Enter valid name and price", true); return; }
+    
+    try {
+        await addDoc(collection(db, 'priceList'), {
+            name: name, price: price, shopId: currentShopId, createdAt: serverTimestamp()
+        });
+        document.getElementById('newItemName').value = '';
+        document.getElementById('newItemPrice').value = '';
+        await loadData(); // Reload priceList
+        renderPriceList();
+        showToast("Item added!");
+    } catch(e) { showToast(e.message, true); }
+};
+
+window.deletePriceListItem = async function(itemId) {
+    if (!confirm("Delete this item from price list?")) return;
+    try {
+        await deleteDoc(doc(db, 'priceList', itemId));
+        await loadData();
+        renderPriceList();
+        showToast("Item deleted!");
+    } catch(e) { showToast(e.message, true); }
+};
+
+// PWA Service Worker
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('service-worker.js')
