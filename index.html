@@ -1172,18 +1172,64 @@ window.deleteCustomer = async function(custId) {
     }
 };
 function renderHistory(container) {
-    let html = `<div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-4"><label class="block text-xs font-semibold text-slate-500 mb-2">Filter by Date (በቀን ማጣሪያ)</label><input type="date" id="filterHistoryDate" onchange="historyPage=1; filterHistoryByDate()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500"><button onclick="clearHistoryFilter()" class="mt-2 text-xs text-blue-600 font-semibold">Clear Filter</button></div><h3 class="text-lg font-bold text-slate-800 mb-4">${translations[currentLang].history_title}</h3><div id="historyListContainer" class="space-y-3"></div><div id="historyPagination" class="pagination"></div>`;
-    container.innerHTML = html; renderHistoryItems();
+    let html = `
+    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-4">
+        <div class="grid grid-cols-2 gap-2 mb-2">
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Filter by Date (ቀን)</label>
+                <input type="date" id="filterHistoryDate" onchange="historyPage=1; filterHistoryByDate()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-sm focus:outline-none focus:border-blue-500">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1">Filter by Month (ወር)</label>
+                <input type="month" id="filterHistoryMonth" onchange="historyPage=1; filterHistoryByMonth()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-sm focus:outline-none focus:border-blue-500">
+            </div>
+        </div>
+        <button onclick="clearHistoryFilter()" class="w-full bg-slate-100 text-slate-600 font-bold py-2 rounded-lg text-xs mt-1">Clear Filters</button>
+    </div>
+    <h3 class="text-lg font-bold text-slate-800 mb-4">${translations[currentLang].history_title}</h3>
+    <div id="historyListContainer" class="space-y-3"></div>
+    <div id="historyPagination" class="pagination"></div>
+    `;
+    container.innerHTML = html; 
+    renderHistoryItems();
 }
-function renderHistoryItems(filterDate = null) {
-    let historyItems = []; salesList.forEach(s => { if (!filterDate || s.date === filterDate) historyItems.push({ type: 'sale', date: s.date, amount: s.totalAmount, name: `${s.itemName} (${s.quantity} ${s.unit})`, customerName: s.customerName, timestamp: s.timestamp }); });
-    paymentsList.forEach(p => { if (!filterDate || p.date === filterDate) { const c = customersList.find(x => x.id === p.customerId); historyItems.push({ type: 'payment', date: p.date, amount: p.amount, name: 'Payment Received', customerName: c ? c.name : 'Unknown', timestamp: p.timestamp }); } });
-    historyItems.sort((a, b) => { if (a.date !== b.date) return b.date.localeCompare(a.date); return (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0); });
+}
+function renderHistoryItems(filterType = 'recent', filterValue = null) {
+    let historyItems = []; 
+    
+    // 1. ሁሉንም ሽያጮች እና ክፍያዎች መሰብሰብ
+    salesList.forEach(s => {
+        historyItems.push({ type: 'sale', date: s.date, amount: s.totalAmount, name: `${s.itemName} (${s.quantity} ${s.unit})`, customerName: s.customerName, timestamp: s.timestamp }); 
+    });
+    paymentsList.forEach(p => { 
+        const c = customersList.find(x => x.id === p.customerId); 
+        historyItems.push({ type: 'payment', date: p.date, amount: p.amount, name: 'Payment Received', customerName: c ? c.name : 'Unknown', timestamp: p.timestamp }); 
+    });
+    
+    // 2. በጊዜ መሰረት መደርደር (አዲሱ መጀመሪያ)
+    historyItems.sort((a, b) => { 
+        if (a.date !== b.date) return b.date.localeCompare(a.date); 
+        return (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0); 
+    });
+
+    // 3. ማጣራት (Filtering)
+    if (filterType === 'date' && filterValue) {
+        historyItems = historyItems.filter(h => h.date === filterValue);
+    } else if (filterType === 'month' && filterValue) {
+        historyItems = historyItems.filter(h => h.date.startsWith(filterValue));
+    } else {
+        // ምንም ካልተመረጠ የመጨረሻዎቹን 20 ብቻ አሳይ
+        historyItems = historyItems.slice(0, 20);
+    }
     
     filteredHistoryItems = historyItems;
     const container = document.getElementById('historyListContainer'); if (!container) return;
     
-    if (historyItems.length === 0) { container.innerHTML = `<div class="text-center text-slate-400 py-10"><i class="fa-solid fa-clock text-4xl mb-3"></i><p>${translations[currentLang].no_data}</p></div>`; document.getElementById('historyPagination').innerHTML = ''; return; }
+    if (historyItems.length === 0) { 
+        container.innerHTML = `<div class="text-center text-slate-400 py-10"><i class="fa-solid fa-clock text-4xl mb-3"></i><p>${filterType === 'recent' ? 'ምንም ግብይት አልተመዘገበም።' : 'በዚህ ጊዜ ውስጥ ምንም ግብይት አልተገኘም።'}</p></div>`; 
+        document.getElementById('historyPagination').innerHTML = ''; 
+        return; 
+    }
     
     const totalPages = Math.ceil(historyItems.length / historyRowsPerPage);
     if (historyPage > totalPages) historyPage = totalPages;
@@ -1202,14 +1248,37 @@ function renderHistoryItems(filterDate = null) {
     }); 
     container.innerHTML = html;
 
-    let pgHtml = `<button class="page-btn" onclick="changeHistoryPage(-1)" ${historyPage === 1 ? 'disabled' : ''}>⬅️</button>`;
-    pgHtml += `<span class="text-sm font-semibold mx-2">${historyPage} / ${totalPages}</span>`;
-    pgHtml += `<button class="page-btn" onclick="changeHistoryPage(1)" ${historyPage === totalPages ? 'disabled' : ''}>➡️</button>`;
-    document.getElementById('historyPagination').innerHTML = pgHtml;
+    // Pagination (ለቅርብ ጊዜ ዳታ ብቻ ስለሆነ ፔጅ ማዞሪያ አያስፈልግም)
+    if (filterType === 'recent') {
+        document.getElementById('historyPagination').innerHTML = `<span class="text-xs text-slate-400 mt-2 block text-center">Showing Recent ${historyItems.length} Transactions</span>`;
+    } else {
+        let pgHtml = `<button class="page-btn" onclick="changeHistoryPage(-1)" ${historyPage === 1 ? 'disabled' : ''}>⬅️</button>`;
+        pgHtml += `<span class="text-sm font-semibold mx-2">${historyPage} / ${totalPages}</span>`;
+        pgHtml += `<button class="page-btn" onclick="changeHistoryPage(1)" ${historyPage === totalPages ? 'disabled' : ''}>➡️</button>`;
+        document.getElementById('historyPagination').innerHTML = pgHtml;
+    }
 }
-window.changeHistoryPage = function(dir) { historyPage += dir; renderHistoryItems(document.getElementById('filterHistoryDate').value || null); };
-window.filterHistoryByDate = function() { const date = document.getElementById('filterHistoryDate').value; renderHistoryItems(date || null); };
-window.clearHistoryFilter = function() { document.getElementById('filterHistoryDate').value = ''; renderHistoryItems(); };
+
+window.filterHistoryByDate = function() { 
+    const dateVal = document.getElementById('filterHistoryDate').value;
+    document.getElementById('filterHistoryMonth').value = ''; // ወር ማጣሪያን አጽዳ
+    if (dateVal) renderHistoryItems('date', dateVal);
+    else renderHistoryItems('recent');
+};
+
+window.filterHistoryByMonth = function() { 
+    const monthVal = document.getElementById('filterHistoryMonth').value;
+    document.getElementById('filterHistoryDate').value = ''; // ቀን ማጣሪያን አጽዳ
+    if (monthVal) renderHistoryItems('month', monthVal);
+    else renderHistoryItems('recent');
+};
+
+window.clearHistoryFilter = function() { 
+    document.getElementById('filterHistoryDate').value = ''; 
+    document.getElementById('filterHistoryMonth').value = ''; 
+    historyPage = 1;
+    renderHistoryItems('recent'); 
+};
 
 function renderPriceListTab(container) {
     let html = `<div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-4"><h3 class="font-bold text-slate-800 text-sm mb-3">Add New Item (አዲስ ዕቃ ጨምር)</h3><div class="space-y-2"><input type="text" id="newItemName" placeholder="Item Name (የዕቃ ስም)" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500"><div class="grid grid-cols-2 gap-2"><input type="number" id="newItemPrice" placeholder="Price (ETB)" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500"><select id="newItemUnit" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:border-blue-500"><option value="piece">Piece (ቁራጭ)</option><option value="kg">Kilogram (ኪሎ)</option><option value="liter">Liter (ሊትር)</option><option value="pack">Pack (ጥቅል)</option></select></div><button onclick="addItemToPriceList()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl text-sm active:scale-95 transition-transform">+ Add Item</button></div></div><h3 class="text-lg font-bold text-slate-800 mb-4">Price List (የዕቃ ዝርዝር)</h3><div id="priceListContainer" class="space-y-3"></div><div id="pricePagination" class="pagination"></div>`;
