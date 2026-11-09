@@ -262,13 +262,17 @@
                     </select>
                 </div>
             </div>
-            <div class="grid grid-cols-2 gap-2 items-end">
+                        <div class="grid grid-cols-2 gap-2 mb-2">
+                <div>
+                    <label class="text-xs block mb-1">Unit Price (የአንዱ ዋጋ)</label>
+                    <input type="number" id="saleUnitPrice" placeholder="0.00" class="bg-white w-full p-2 border rounded-lg" oninput="calcCartItemTotal()">
+                </div>
                 <div>
                     <label class="text-xs block mb-1">Total (ETB)</label>
                     <input type="number" id="saleTotalAmount" placeholder="0.00" class="bg-white w-full p-2 border rounded-lg" readonly>
                 </div>
-                <button onclick="addToSaleCart()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-sm active:scale-95 transition-transform">+ Add to Cart</button>
             </div>
+            <button onclick="addToSaleCart()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg text-sm active:scale-95 transition-transform mb-2">+ Add to Cart</button>
         </div>
 
         <div class="mb-4">
@@ -625,18 +629,46 @@ window.showOverdueList = function() {
 };
 
 window.autoFillItemPrice = function() {
-    const itemName = document.getElementById('saleItemName').value.trim(); const foundItem = priceList.find(i => i.name.toLowerCase() === itemName.toLowerCase());
-    if (foundItem) { document.getElementById('saleUnit').value = foundItem.unit || 'piece'; calcCartItemTotal(); }
+    const itemName = document.getElementById('saleItemName').value.trim(); 
+    const foundItem = priceList.find(i => i.name.toLowerCase() === itemName.toLowerCase());
+    if (foundItem) { 
+        document.getElementById('saleUnit').value = foundItem.unit || 'piece'; 
+        document.getElementById('saleUnitPrice').value = foundItem.price; // ✅ ዋጋውን በራሱ ሞላ
+        calcCartItemTotal(); 
+    } else {
+        document.getElementById('saleUnitPrice').value = ''; // ካልተገኘ ባዶ ይሁን
+        document.getElementById('saleTotalAmount').value = '';
+    }
 };
+
 window.calcCartItemTotal = function() {
-    const itemName = document.getElementById('saleItemName').value.trim(); const qty = parseFloat(document.getElementById('saleQty').value) || 0; const foundItem = priceList.find(i => i.name.toLowerCase() === itemName.toLowerCase());
-    if (foundItem && qty > 0) document.getElementById('saleTotalAmount').value = (foundItem.price * qty).toFixed(2); else document.getElementById('saleTotalAmount').value = '';
+    const qty = parseFloat(document.getElementById('saleQty').value) || 0; 
+    const unitPrice = parseFloat(document.getElementById('saleUnitPrice').value) || 0;
+    
+    if (qty > 0 && unitPrice > 0) {
+        document.getElementById('saleTotalAmount').value = (unitPrice * qty).toFixed(2); 
+    } else {
+        document.getElementById('saleTotalAmount').value = '';
+    }
 };
 window.addToSaleCart = function() {
-    const itemName = document.getElementById('saleItemName').value.trim(); const qty = parseFloat(document.getElementById('saleQty').value); const unit = document.getElementById('saleUnit').value; const total = parseFloat(document.getElementById('saleTotalAmount').value);
-    if (!itemName || isNaN(qty) || qty <= 0 || isNaN(total) || total <= 0) { showToast("Please enter valid item and quantity", true); return; }
-    cart.push({ name: itemName, qty: qty, unit: unit, total: total });
-    document.getElementById('saleItemName').value = ''; document.getElementById('saleQty').value = ''; document.getElementById('saleTotalAmount').value = '';
+    const itemName = document.getElementById('saleItemName').value.trim(); 
+    const qty = parseFloat(document.getElementById('saleQty').value); 
+    const unit = document.getElementById('saleUnit').value; 
+    const unitPrice = parseFloat(document.getElementById('saleUnitPrice').value);
+    const total = parseFloat(document.getElementById('saleTotalAmount').value);
+    
+    if (!itemName || isNaN(qty) || qty <= 0 || isNaN(unitPrice) || unitPrice <= 0 || isNaN(total) || total <= 0) { 
+        showToast("Please enter valid item, quantity, and price", true); return; 
+    }
+    
+    cart.push({ name: itemName, qty: qty, unit: unit, unitPrice: unitPrice, total: total });
+    
+    document.getElementById('saleItemName').value = ''; 
+    document.getElementById('saleQty').value = ''; 
+    document.getElementById('saleUnitPrice').value = ''; // ✅ መስኩን አጽዳ
+    document.getElementById('saleTotalAmount').value = '';
+    
     renderSaleCart();
 };
 window.renderSaleCart = function() {
@@ -703,30 +735,60 @@ window.loadCustomerDebtsForPayment = function() {
 };
 
 window.saveCreditSale = async function() {
-    const custName = document.getElementById('saleCustomerName').value.trim(); const custPhone = document.getElementById('saleCustomerPhone').value.trim(); const paid = parseFloat(document.getElementById('salePaidAmount').value) || 0; const date = document.getElementById('saleDate').value;
+    const custName = document.getElementById('saleCustomerName').value.trim(); 
+    const custPhone = document.getElementById('saleCustomerPhone').value.trim(); 
+    const paid = parseFloat(document.getElementById('salePaidAmount').value) || 0; 
+    const date = document.getElementById('saleDate').value;
+    
     if (!custName || cart.length === 0 || !date) { showToast("Fill customer info and add items to cart", true); return; }
+    
     try {
-        let customerId = null; let existingCust = customersList.find(c => c.phone === custPhone || c.name === custName);
-        if (existingCust) customerId = existingCust.id; else { const newCustRef = await addDoc(collection(db, 'customers'), { name: custName, phone: custPhone || '-', shopId: currentShopId, createdAt: serverTimestamp() }); customerId = newCustRef.id; }
+        let customerId = null; 
+        let existingCust = customersList.find(c => c.phone === custPhone || c.name === custName);
+        if (existingCust) customerId = existingCust.id; 
+        else { 
+            const newCustRef = await addDoc(collection(db, 'customers'), { name: custName, phone: custPhone || '-', shopId: currentShopId, createdAt: serverTimestamp() }); 
+            customerId = newCustRef.id; 
+        }
+        
         let remainingPaid = paid;
         for (let i = 0; i < cart.length; i++) {
-            const item = cart[i]; let itemPaid = 0;
-            if (i === 0) itemPaid = Math.min(remainingPaid, item.total); else if (remainingPaid > 0) { itemPaid = Math.min(remainingPaid, item.total); remainingPaid -= itemPaid; }
-            await addDoc(collection(db, 'sales'), { customerId: customerId, customerName: custName, customerPhone: custPhone || '-', itemName: item.name, quantity: item.qty, unit: item.unit, totalAmount: item.total, paidAmount: itemPaid, date: date, shopId: currentShopId, createdAt: serverTimestamp() });
+            const item = cart[i]; 
+            let itemPaid = 0;
+            if (i === 0) itemPaid = Math.min(remainingPaid, item.total); 
+            else if (remainingPaid > 0) { itemPaid = Math.min(remainingPaid, item.total); remainingPaid -= itemPaid; }
+            
+            // ሽያጩን መመዝገብ
+            await addDoc(collection(db, 'sales'), { 
+                customerId: customerId, 
+                customerName: custName, 
+                customerPhone: custPhone || '-', 
+                itemName: item.name, 
+                quantity: item.qty, 
+                unit: item.unit, 
+                totalAmount: item.total, 
+                paidAmount: itemPaid, 
+                date: date, 
+                shopId: currentShopId, 
+                createdAt: serverTimestamp() 
+            });
 
             // ✅ NEW: Price List ላይ የሌለ እቃ ከሆነ በራሱ ወደ Price List ይጨመራል
             const priceExists = priceList.find(p => p.name.toLowerCase() === item.name.toLowerCase());
             if (!priceExists) {
                 await addDoc(collection(db, 'priceList'), { 
                     name: item.name, 
-                    price: item.total / item.qty, 
+                    price: item.unitPrice, // በእጅ የገባውን የአንዱ ዋጋ ተጠቀም
                     unit: item.unit, 
                     shopId: currentShopId, 
                     createdAt: serverTimestamp() 
                 });
             }
         }
-        showToast("All sales recorded successfully!"); closeModal('creditSaleModal'); await loadData(); switchView('home');
+        showToast("All sales recorded successfully!"); 
+        closeModal('creditSaleModal'); 
+        await loadData(); 
+        switchView('home');
     } catch(e) { showToast(e.message, true); }
 };
 
