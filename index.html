@@ -623,22 +623,16 @@ onAuthStateChanged(auth, async (user) => {
             }
         } catch(e) { console.log("User info error", e); }
         
-        // ✅ 1. ገፁን ወዲያውኑ አሳይ (ዳታ ሳይጫን)
+        // 1. ገፁን ወዲያውኑ አሳይ
         document.getElementById('authScreen').classList.add('hidden'); 
         document.getElementById('mainApp').classList.remove('hidden'); 
         document.getElementById('bottomNav').classList.remove('hidden');
         
-        switchView('home'); // Home ገፁን አሳይ
+        // 2. ዳታውን ጫን
+        await loadData();
         
-        // ✅ 2. ዳታውን ከበስተጀርባ ጫን (ለተጠቃሚው ሳይታወቅ)
-        loadData().then(() => {
-            // ዳታው ከተጫነ በኋላ ወቅታዊውን ገፅ እንደገና አድስ (አስፈላጊ ከሆነ)
-            const activeNav = document.querySelector('.nav-item.active');
-            if (activeNav) {
-                const viewName = activeNav.querySelector('span').getAttribute('data-lang') || 'home';
-                switchView(viewName, activeNav);
-            }
-        });
+        // 3. ዳታው ከተጫነ በኋላ ገፁን አሳይ
+        switchView('home');
         
     } else {
         currentUser = null; 
