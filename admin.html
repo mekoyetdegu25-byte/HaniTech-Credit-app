@@ -99,7 +99,7 @@
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
                     <div class="flex justify-between items-start">
                         <div>
-                            <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Active Shops</p>
+                            <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Active / Trial</p>
                             <h3 id="statActiveShops" class="text-3xl font-extrabold text-emerald-600">0</h3>
                         </div>
                         <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center"><i class="fa-solid fa-check-circle"></i></div>
@@ -166,7 +166,7 @@
                     </div>
                     <select id="filterStatus" class="px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500">
                         <option value="all">All Status</option>
-                        <option value="active">Active</option>
+                        <option value="active">Active / Trial</option>
                         <option value="expired">Expired</option>
                         <option value="suspended">Suspended</option>
                     </select>
@@ -316,6 +316,10 @@
                 <label class="block text-xs font-bold text-slate-500 mb-1">Temporary Password</label>
                 <input type="text" id="newShopPass" class="w-full p-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500" value="123456">
             </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 mb-1">Trial Period (Days)</label>
+                <input type="number" id="newShopTrial" class="w-full p-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500" value="7" min="1">
+            </div>
         </div>
         <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end">
             <button onclick="createShop()" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold text-sm shadow-lg shadow-blue-600/30 hover:bg-blue-700 transition">Create Shop</button>
@@ -384,9 +388,9 @@ onAuthStateChanged(auth, async (user) => {
     if (user && user.email === ADMIN_EMAIL) {
         await loadData();
         switchPage('dashboard');
-    } else if (user) {
-        // ካልተፈቀደለት ሰው ከገባ ወደ ውጭ መላክ (ለዚህ ገጽ የተለየ መግቢያ አለበት ግን ለአሁኑ እንዘለው)
-        // await signOut(auth);
+    } else {
+        // ካልተፈቀደለት ሰው ከገባ ወደ ውጭ መላክ
+        if (user) await signOut(auth);
     }
 });
 
@@ -421,7 +425,6 @@ async function loadData() {
         
     } catch (e) { 
         console.error("Firebase Error:", e); 
-        // ስህተቱ የፈቃድ ከሆነ ይህንን ያሳያል
         if (e.code === 'permission-denied') {
             showToast("የፈቃድ ስህተት! እባክዎ Firestore Rules ያስተካክሉ።", true);
         } else {
@@ -429,6 +432,7 @@ async function loadData() {
         }
     }
 }
+
 // --- RENDER: DASHBOARD ---
 function renderDashboard() {
     let active = 0, expired = 0, suspended = 0;
@@ -458,7 +462,12 @@ function renderDashboard() {
     const recent = [...shopsList].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
     let recentHtml = '';
     recent.forEach(s => {
-        const statusBadge = s.status === 'active' ? '<span class="text-emerald-600 bg-emerald-50 px-2 py-1 rounded text-xs font-bold">Active</span>' : '<span class="text-red-600 bg-red-50 px-2 py-1 rounded text-xs font-bold">Suspended</span>';
+        let statusBadge = '';
+        const isExpired = s.expiryDate && s.expiryDate < today;
+        if (s.status === 'suspended') statusBadge = '<span class="text-red-600 bg-red-50 px-2 py-1 rounded text-xs font-bold">Suspended</span>';
+        else if (isExpired) statusBadge = '<span class="text-amber-600 bg-amber-50 px-2 py-1 rounded text-xs font-bold">Expired</span>';
+        else statusBadge = '<span class="text-emerald-600 bg-emerald-50 px-2 py-1 rounded text-xs font-bold">Active</span>';
+
         recentHtml += `
             <tr class="border-b border-slate-50 hover:bg-slate-50">
                 <td class="p-4 font-bold text-slate-800">${s.shopName}</td>
@@ -494,6 +503,14 @@ window.renderShops = function() {
         else if (isExpired) statusBadge = '<span class="text-amber-600 bg-amber-50 border border-amber-200 px-2 py-1 rounded text-[10px] font-bold uppercase">Expired</span>';
         else statusBadge = '<span class="text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded text-[10px] font-bold uppercase">Active</span>';
 
+        // የቀሩትን ቀናት ማሳየት (Trial)
+        let daysLeftText = '';
+        if (!isExpired && s.expiryDate) {
+            const diffTime = Math.abs(new Date(s.expiryDate) - new Date());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            daysLeftText = `<div class="text-[10px] text-slate-400">${diffDays} days left</div>`;
+        }
+
         html += `
             <tr class="border-b border-slate-50 hover:bg-slate-50 transition">
                 <td class="p-4">
@@ -501,7 +518,10 @@ window.renderShops = function() {
                     <div class="text-xs text-slate-500">${s.phone}</div>
                 </td>
                 <td class="p-4">${statusBadge}</td>
-                <td class="p-4 text-sm font-semibold ${isExpired ? 'text-red-500' : 'text-slate-600'}">${s.expiryDate || 'Not set'}</td>
+                <td class="p-4 text-sm font-semibold ${isExpired ? 'text-red-500' : 'text-slate-600'}">
+                    ${s.expiryDate || 'Not set'}
+                    ${daysLeftText}
+                </td>
                 <td class="p-4 text-right space-x-2">
                     <button onclick="markPaid('${s.id}')" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-3 py-1.5 rounded-lg text-xs font-bold transition" title="Mark as Paid"><i class="fa-solid fa-money-bill"></i></button>
                     <button onclick="toggleSuspend('${s.id}', '${s.status}')" class="bg-amber-50 text-amber-600 hover:bg-amber-100 px-3 py-1.5 rounded-lg text-xs font-bold transition" title="${s.status === 'active' ? 'Suspend' : 'Activate'}">
@@ -641,6 +661,7 @@ window.createShop = async function() {
     const name = document.getElementById('newShopName').value;
     const phone = document.getElementById('newShopPhone').value;
     const pass = document.getElementById('newShopPass').value;
+    const trialDays = parseInt(document.getElementById('newShopTrial').value) || 7;
 
     if (!name || !phone || !pass) { showToast("ሁሉንም መሙላት አለብህ", true); return; }
 
@@ -653,19 +674,24 @@ window.createShop = async function() {
         const uid = userCred.user.uid;
         await signOut(secondaryAuth);
 
-        // 2. ሱቅ መመዝገብ
+        // 2. የ Trial Expiry ቀን ማስላት
+        const expiry = new Date();
+        expiry.setDate(expiry.getDate() + trialDays);
+        const expiryStr = expiry.toISOString().split('T')[0];
+
+        // 3. ሱቅ መመዝገብ
         await setDoc(doc(db, 'shops', uid), {
             shopId: uid,
             shopName: name,
             phone: phone,
             ownerEmail: email,
             status: 'active',
-            expiryDate: new Date().toISOString().split('T')[0], // ዛሬ እንዲጀምር
+            expiryDate: expiryStr, // የሙከራ ማብቂያ ቀን
             paymentHistory: [],
             createdAt: new Date().toISOString()
         });
 
-        // 3. ተጠቃሚ መመዝገብ (users)
+        // 4. ተጠቃሚ መመዝገብ (users)
         await setDoc(doc(db, 'users', uid), {
             email: email,
             phone: phone,
@@ -675,7 +701,7 @@ window.createShop = async function() {
             createdAt: new Date().toISOString()
         });
 
-        showToast("✅ ሱቅ በተሳካ ሁኔታ ተፈጥሯል!");
+        showToast("✅ ሱቅ በተሳካ ሁኔታ ተፈጥሯል! " + trialDays + " ቀናት የሙከራ ጊዜ ተሰጥቷል።");
         closeModal('addShopModal');
         loadData();
     } catch (e) {
