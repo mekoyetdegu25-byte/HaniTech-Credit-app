@@ -2,98 +2,338 @@
 <html lang="am">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Super Admin - HaniTech Credit Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>HaniTech Admin Panel</title>
+<meta name="theme-color" content="#0f172a">
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style> body { font-family: 'Inter', sans-serif; background: #f1f5f9; } </style>
+<style>
+    body { font-family: 'Inter', sans-serif; background: #f1f5f9; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .sidebar { transition: transform 0.3s ease; }
+    @media (max-width: 768px) {
+        .sidebar { transform: translateX(-100%); }
+        .sidebar.open { transform: translateX(0); }
+    }
+</style>
 </head>
-<body class="p-4 md:p-8">
+<body class="flex h-screen overflow-hidden text-slate-800">
 
-<!-- LOGIN VIEW -->
-<div id="adminLogin" class="max-w-md mx-auto mt-20 bg-white p-8 rounded-2xl shadow-lg">
-    <div class="text-center mb-6">
-        <div class="w-16 h-16 bg-slate-800 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"><i class="fa-solid fa-shield-halved"></i></div>
-        <h1 class="text-2xl font-bold text-slate-800">Super Admin</h1>
-        <p class="text-sm text-slate-500">HaniTech Credit Tracker</p>
+<!-- SIDEBAR OVERLAY (MOBILE) -->
+<div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside id="sidebar" class="sidebar fixed md:static inset-y-0 left-0 w-64 bg-slate-900 text-slate-300 z-50 flex flex-col h-full shadow-xl">
+    <div class="p-5 border-b border-slate-800 flex items-center gap-3">
+        <div class="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center font-bold text-xl shadow-lg"><i class="fa-solid fa-shield-halved"></i></div>
+        <div>
+            <h1 class="text-white font-bold text-sm leading-tight">HaniTech Admin</h1>
+            <p class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Super Admin Panel</p>
+        </div>
     </div>
-    <div class="space-y-4">
-        <div>
-            <label class="block text-sm font-semibold text-slate-700 mb-1">Admin Email</label>
-            <input type="email" id="adminEmail" class="w-full p-3 border rounded-xl outline-none focus:border-blue-500" placeholder="admin@hanitech.com">
+    
+    <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1 hide-scrollbar">
+        <div class="nav-item active flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-colors" data-page="dashboard" onclick="switchPage('dashboard')">
+            <i class="fa-solid fa-chart-pie w-5 text-center"></i> <span class="font-semibold text-sm">Dashboard</span>
         </div>
-        <div>
-            <label class="block text-sm font-semibold text-slate-700 mb-1">Password</label>
-            <input type="password" id="adminPass" class="w-full p-3 border rounded-xl outline-none focus:border-blue-500" placeholder="••••••••">
+        <div class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-colors" data-page="shops" onclick="switchPage('shops')">
+            <i class="fa-solid fa-store w-5 text-center"></i> <span class="font-semibold text-sm">Shops</span>
         </div>
-        <div id="adminError" class="text-red-500 text-sm text-center hidden"></div>
-        <button onclick="adminLogin()" class="w-full bg-slate-800 text-white font-bold py-3 rounded-xl hover:bg-slate-900 transition">Login</button>
+        <div class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-colors" data-page="billing" onclick="switchPage('billing')">
+            <i class="fa-solid fa-money-bill-wave w-5 text-center"></i> <span class="font-semibold text-sm">Billing</span>
+        </div>
+        <div class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-colors" data-page="users" onclick="switchPage('users')">
+            <i class="fa-solid fa-users w-5 text-center"></i> <span class="font-semibold text-sm">Users</span>
+        </div>
+        <div class="nav-item flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-colors" data-page="settings" onclick="switchPage('settings')">
+            <i class="fa-solid fa-gear w-5 text-center"></i> <span class="font-semibold text-sm">Settings</span>
+        </div>
+    </nav>
+
+    <div class="p-4 border-t border-slate-800">
+        <button onclick="adminLogout()" class="w-full bg-red-500/10 text-red-400 font-bold py-3 rounded-xl hover:bg-red-500/20 transition flex items-center justify-center gap-2">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+        </button>
+    </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="flex-1 flex flex-col h-full overflow-hidden relative">
+    
+    <!-- TOPBAR (MOBILE) -->
+    <header class="md:hidden bg-white px-4 py-3 flex justify-between items-center border-b border-slate-200 z-30">
+        <div class="flex items-center gap-3">
+            <button onclick="toggleSidebar()" class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-600"><i class="fa-solid fa-bars"></i></button>
+            <h1 class="font-bold text-sm">Admin Portal</h1>
+        </div>
+        <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold text-xs">A</div>
+    </header>
+
+    <!-- CONTENT AREA -->
+    <div class="flex-1 overflow-y-auto p-4 md:p-8 hide-scrollbar">
+        
+        <!-- PAGE: DASHBOARD -->
+        <div id="page-dashboard" class="page-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-slate-800">Dashboard Overview</h2>
+            </div>
+
+            <!-- ALERT BANNER -->
+            <div id="alertBanner" class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl mb-6 hidden flex items-center gap-3 shadow-sm">
+                <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+                <p class="text-sm font-semibold" id="alertBannerText"></p>
+            </div>
+
+            <!-- STATS GRID -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Total Shops</p>
+                            <h3 id="statTotalShops" class="text-3xl font-extrabold text-slate-800">0</h3>
+                        </div>
+                        <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center"><i class="fa-solid fa-store"></i></div>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Active Shops</p>
+                            <h3 id="statActiveShops" class="text-3xl font-extrabold text-emerald-600">0</h3>
+                        </div>
+                        <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center"><i class="fa-solid fa-check-circle"></i></div>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Expired</p>
+                            <h3 id="statExpired" class="text-3xl font-extrabold text-amber-500">0</h3>
+                        </div>
+                        <div class="w-10 h-10 bg-amber-50 text-amber-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-clock"></i></div>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Suspended</p>
+                            <h3 id="statSuspended" class="text-3xl font-extrabold text-red-500">0</h3>
+                        </div>
+                        <div class="w-10 h-10 bg-red-50 text-red-500 rounded-xl flex items-center justify-center"><i class="fa-solid fa-ban"></i></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RECENT SHOPS -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="p-5 border-b border-slate-100 flex justify-between items-center">
+                    <h3 class="font-bold text-slate-800">Recently Registered Shops</h3>
+                    <button onclick="switchPage('shops')" class="text-xs font-bold text-blue-600 hover:underline">View All</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+                                <th class="p-4 font-semibold">Shop Name</th>
+                                <th class="p-4 font-semibold">Phone</th>
+                                <th class="p-4 font-semibold">Status</th>
+                                <th class="p-4 font-semibold">Joined Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentShopsBody" class="text-sm text-slate-700">
+                            <!-- Data -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE: SHOPS -->
+        <div id="page-shops" class="page-content hidden">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <h2 class="text-2xl font-bold text-slate-800">Shop Management</h2>
+                <button onclick="openModal('addShopModal')" class="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-lg shadow-blue-600/30 hover:bg-blue-700 transition flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Add New Shop
+                </button>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="p-4 border-b border-slate-100 flex flex-col md:flex-row gap-3">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="searchShop" placeholder="Search by shop name or phone..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500">
+                    </div>
+                    <select id="filterStatus" class="px-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500">
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="expired">Expired</option>
+                        <option value="suspended">Suspended</option>
+                    </select>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+                                <th class="p-4 font-semibold">Shop Details</th>
+                                <th class="p-4 font-semibold">Status</th>
+                                <th class="p-4 font-semibold">Expiry Date</th>
+                                <th class="p-4 font-semibold text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="shopsTableBody" class="text-sm text-slate-700">
+                            <!-- Data -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE: BILLING -->
+        <div id="page-billing" class="page-content hidden">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Billing & Payments</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+                    <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-2xl"><i class="fa-solid fa-sack-dollar"></i></div>
+                    <div>
+                        <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Total Collected</p>
+                        <h3 id="statTotalCollected" class="text-2xl font-extrabold text-slate-800">0 ETB</h3>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+                    <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-2xl"><i class="fa-solid fa-receipt"></i></div>
+                    <div>
+                        <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Total Transactions</p>
+                        <h3 id="statTotalTransactions" class="text-2xl font-extrabold text-slate-800">0</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="p-5 border-b border-slate-100">
+                    <h3 class="font-bold text-slate-800">Recent Payments</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+                                <th class="p-4 font-semibold">Shop Name</th>
+                                <th class="p-4 font-semibold">Date</th>
+                                <th class="p-4 font-semibold">Amount</th>
+                                <th class="p-4 font-semibold">Method</th>
+                            </tr>
+                        </thead>
+                        <tbody id="billingTableBody" class="text-sm text-slate-700">
+                            <!-- Data -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE: USERS -->
+        <div id="page-users" class="page-content hidden">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">User Management</h2>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="p-4 border-b border-slate-100 flex gap-3">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="searchUser" placeholder="Search by email..." class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+                                <th class="p-4 font-semibold">Email</th>
+                                <th class="p-4 font-semibold">Role</th>
+                                <th class="p-4 font-semibold">Shop</th>
+                                <th class="p-4 font-semibold text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody" class="text-sm text-slate-700">
+                            <!-- Data -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE: SETTINGS -->
+        <div id="page-settings" class="page-content hidden">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">System Settings</h2>
+            
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6">
+                <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="fa-solid fa-headset text-blue-500"></i> Support Information</h3>
+                <p class="text-sm text-slate-500 mb-4">ይህ መረጃ በሱቅ ባለቤቶች አፕ ላይ ይታያል።</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">Phone Number</label>
+                        <input type="text" id="supportPhone" class="w-full p-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">Email Address</label>
+                        <input type="email" id="supportEmail" class="w-full p-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1">Telegram Username</label>
+                        <input type="text" id="supportTelegram" class="w-full p-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+                <button onclick="saveSupportInfo()" class="mt-4 bg-slate-800 text-white px-6 py-2 rounded-xl font-bold text-sm hover:bg-slate-900 transition">Save Settings</button>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-red-100 p-6">
+                <h3 class="font-bold text-red-600 mb-2 flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation"></i> Danger Zone</h3>
+                <p class="text-sm text-slate-500 mb-4">ሁሉንም የስርዓቱን ዳታ (ሱቆችን እና ተጠቃሚዎችን) ማውረድ ወይም ማጥፋት።</p>
+                <div class="flex gap-3">
+                    <button onclick="exportBackup()" class="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl font-bold text-sm hover:bg-blue-100 transition flex items-center gap-2"><i class="fa-solid fa-download"></i> Download Backup</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- MODAL: ADD SHOP -->
+<div id="addShopModal" class="fixed inset-0 bg-black/50 z-[100] hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl">
+        <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+            <h3 class="font-bold text-slate-800">Add New Shop</h3>
+            <button onclick="closeModal('addShopModal')" class="w-8 h-8 bg-white rounded-full flex items-center justify-center text-slate-500 border border-slate-200 hover:bg-slate-100"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="p-6 space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-slate-500 mb-1">Shop Name</label>
+                <input type="text" id="newShopName" class="w-full p-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500" placeholder="e.g. Abebe Shop">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 mb-1">Phone Number</label>
+                <input type="tel" id="newShopPhone" class="w-full p-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500" placeholder="0911223344">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 mb-1">Temporary Password</label>
+                <input type="text" id="newShopPass" class="w-full p-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-blue-500" value="123456">
+            </div>
+        </div>
+        <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+            <button onclick="createShop()" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold text-sm shadow-lg shadow-blue-600/30 hover:bg-blue-700 transition">Create Shop</button>
+        </div>
     </div>
 </div>
 
-<!-- DASHBOARD VIEW -->
-<div id="adminDashboard" class="hidden max-w-6xl mx-auto">
-    <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-2xl shadow-sm">
-        <div>
-            <h1 class="text-xl font-bold text-slate-800">Admin Portal</h1>
-            <p class="text-xs text-slate-500">Manage all registered shops</p>
-        </div>
-        <button onclick="adminLogout()" class="bg-red-50 text-red-600 px-4 py-2 rounded-lg font-bold text-sm hover:bg-red-100">Logout</button>
-    </div>
-
-    <!-- Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white p-5 rounded-2xl shadow-sm border-l-4 border-blue-500">
-            <p class="text-slate-500 text-xs font-bold mb-1">Total Shops</p>
-            <h3 id="statTotalShops" class="text-2xl font-bold text-slate-800">0</h3>
-        </div>
-        <div class="bg-white p-5 rounded-2xl shadow-sm border-l-4 border-emerald-500">
-            <p class="text-slate-500 text-xs font-bold mb-1">Active Shops</p>
-            <h3 id="statActiveShops" class="text-2xl font-bold text-emerald-600">0</h3>
-        </div>
-        <div class="bg-white p-5 rounded-2xl shadow-sm border-l-4 border-amber-500">
-            <p class="text-slate-500 text-xs font-bold mb-1">Total System Debt</p>
-            <h3 id="statTotalDebt" class="text-2xl font-bold text-amber-600">0 ETB</h3>
-        </div>
-        <div class="bg-white p-5 rounded-2xl shadow-sm border-l-4 border-purple-500">
-            <p class="text-slate-500 text-xs font-bold mb-1">Total Customers</p>
-            <h3 id="statTotalCustomers" class="text-2xl font-bold text-purple-600">0</h3>
-        </div>
-    </div>
-
-    <!-- Shops List -->
-    <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <div class="p-4 border-b border-slate-100 flex justify-between items-center">
-            <h3 class="font-bold text-slate-800">Registered Shops</h3>
-            <input type="text" id="searchShop" placeholder="🔍 Search..." class="p-2 border rounded-lg text-sm w-48 outline-none">
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
-                        <th class="p-4 font-semibold">Shop Name</th>
-                        <th class="p-4 font-semibold">Phone</th>
-                        <th class="p-4 font-semibold">Status</th>
-                        <th class="p-4 font-semibold">Customers</th>
-                        <th class="p-4 font-semibold">Total Debt</th>
-                        <th class="p-4 font-semibold">Action</th>
-                    </tr>
-                </thead>
-                <tbody id="shopListBody" class="text-sm text-slate-700">
-                    <!-- Data will load here -->
-                </tbody>
-            </table>
-        </div>
-    </div>
+<!-- TOAST -->
+<div id="toast" class="fixed top-5 right-5 bg-slate-800 text-white px-6 py-3 rounded-xl shadow-2xl font-bold text-sm z-[200] transform transition-transform duration-300 translate-x-[150%]">
+    <span id="toastMsg"></span>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js"; 
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, query, where, doc, updateDoc, setDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js"; 
 
-// ⚠️ የእርስዎ Firebase Config (የ Credit Tracker ፕሮጀክት)
+// ⚠️ የእርስዎ Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyC3h__9_0HMC0ebr8sFV5_v1fqholtBVFg",
   authDomain: "anitech-credit-app.firebaseapp.com",
@@ -107,114 +347,364 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app); 
 
-// ⚠️ እባክዎ የአስተዳዳሪ ኢሜልዎን ያስገቡ
-const ADMIN_EMAIL = "admin@hanitech.com"; 
+const ADMIN_EMAIL = "admin@hanitech.com"; // ⚠️ የእርስዎ አስተዳዳሪ ኢሜል
 
-window.adminLogin = async function() {
-    const email = document.getElementById('adminEmail').value;
-    const pass = document.getElementById('adminPass').value;
-    const errEl = document.getElementById('adminError');
-    errEl.classList.add('hidden');
+let shopsList = [];
+let usersList = [];
 
-    if (email !== ADMIN_EMAIL) {
-        errEl.innerText = "Unauthorized access.";
-        errEl.classList.remove('hidden');
-        return;
-    }
-
-    try {
-        await signInWithEmailAndPassword(auth, email, pass);
-    } catch (e) {
-        errEl.innerText = "Invalid credentials.";
-        errEl.classList.remove('hidden');
-    }
+// --- UTILS ---
+window.showToast = function(msg, isError = false) {
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toastMsg');
+    toastMsg.innerText = msg;
+    toast.className = `fixed top-5 right-5 ${isError ? 'bg-red-600' : 'bg-slate-800'} text-white px-6 py-3 rounded-xl shadow-2xl font-bold text-sm z-[200] transform transition-transform duration-300 translate-x-0`;
+    setTimeout(() => { toast.classList.add('translate-x-[150%]'); }, 3000);
 };
 
-window.adminLogout = function() { signOut(auth); };
+window.toggleSidebar = function() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebarOverlay').classList.toggle('hidden');
+};
 
+window.switchPage = function(pageId) {
+    document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+    document.getElementById(`page-${pageId}`).classList.remove('hidden');
+    
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active', 'bg-blue-600', 'text-white'));
+    document.querySelector(`.nav-item[data-page="${pageId}"]`).classList.add('active', 'bg-blue-600', 'text-white');
+
+    if(window.innerWidth < 768) toggleSidebar();
+};
+
+window.openModal = function(id) { document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); };
+window.closeModal = function(id) { document.getElementById(id).classList.add('hidden'); document.getElementById(id).classList.remove('flex'); };
+
+// --- AUTHENTICATION ---
 onAuthStateChanged(auth, async (user) => {
     if (user && user.email === ADMIN_EMAIL) {
-        document.getElementById('adminLogin').classList.add('hidden');
-        document.getElementById('adminDashboard').classList.remove('hidden');
-        await loadAdminData();
-    } else {
-        document.getElementById('adminLogin').classList.remove('hidden');
-        document.getElementById('adminDashboard').classList.add('hidden');
+        await loadData();
+        switchPage('dashboard');
+    } else if (user) {
+        // ካልተፈቀደለት ሰው ከገባ ወደ ውጭ መላክ (ለዚህ ገጽ የተለየ መግቢያ አለበት ግን ለአሁኑ እንዘለው)
+        // await signOut(auth);
     }
 });
 
-async function loadAdminData() {
-    const searchVal = document.getElementById('searchShop').value.toLowerCase();
-    const shopsSnapshot = await getDocs(collection(db, 'shops'));
-    let totalShops = 0;
-    let activeShops = 0;
-    let totalDebt = 0;
-    let totalCustomers = 0;
+// ይህ አስተዳዳሪ መግቢያ (ለሙከራ)
+window.adminLogin = async function(email, pass) {
+    try {
+        await signInWithEmailAndPassword(auth, email, pass);
+    } catch (e) { alert(e.message); }
+};
+
+window.adminLogout = function() { signOut(auth).then(() => window.location.reload()); };
+
+// --- LOAD DATA ---
+async function loadData() {
+    try {
+        // ሱቆችን መጫን
+        const shopsSnap = await getDocs(collection(db, 'shops'));
+        shopsList = [];
+        shopsSnap.forEach(doc => shopsList.push({ id: doc.id, ...doc.data() }));
+
+        // ተጠቃሚዎችን መጫን
+        const usersSnap = await getDocs(collection(db, 'users'));
+        usersList = [];
+        usersSnap.forEach(doc => usersList.push({ id: doc.id, ...doc.data() }));
+
+        renderDashboard();
+        renderShops();
+        renderBilling();
+        renderUsers();
+        loadSupportSettings();
+    } catch (e) { console.error(e); showToast("ዳታ መጫን አልተቻለም", true); }
+}
+
+// --- RENDER: DASHBOARD ---
+function renderDashboard() {
+    let active = 0, expired = 0, suspended = 0;
+    const today = new Date().toISOString().split('T')[0];
+
+    shopsList.forEach(s => {
+        if (s.status === 'suspended') suspended++;
+        else if (s.expiryDate && s.expiryDate < today) expired++;
+        else active++;
+    });
+
+    document.getElementById('statTotalShops').innerText = shopsList.length;
+    document.getElementById('statActiveShops').innerText = active;
+    document.getElementById('statExpired').innerText = expired;
+    document.getElementById('statSuspended').innerText = suspended;
+
+    const alertBanner = document.getElementById('alertBanner');
+    const alertBannerText = document.getElementById('alertBannerText');
+    if (expired > 0) {
+        alertBanner.classList.remove('hidden');
+        alertBannerText.innerText = `${expired} ሱቆች የክፍያ ጊዜያቸው አልፏል! እባክዎ ያስታውሱ።`;
+    } else {
+        alertBanner.classList.add('hidden');
+    }
+
+    // አዳዲስ ሱቆች (በቅርብ ጊዜ የተመዘገቡ)
+    const recent = [...shopsList].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
+    let recentHtml = '';
+    recent.forEach(s => {
+        const statusBadge = s.status === 'active' ? '<span class="text-emerald-600 bg-emerald-50 px-2 py-1 rounded text-xs font-bold">Active</span>' : '<span class="text-red-600 bg-red-50 px-2 py-1 rounded text-xs font-bold">Suspended</span>';
+        recentHtml += `
+            <tr class="border-b border-slate-50 hover:bg-slate-50">
+                <td class="p-4 font-bold text-slate-800">${s.shopName}</td>
+                <td class="p-4">${s.phone}</td>
+                <td class="p-4">${statusBadge}</td>
+                <td class="p-4 text-slate-500">${new Date(s.createdAt).toLocaleDateString()}</td>
+            </tr>
+        `;
+    });
+    document.getElementById('recentShopsBody').innerHTML = recentHtml || '<tr><td colspan="4" class="p-4 text-center text-slate-400">No shops yet</td></tr>';
+}
+
+// --- RENDER: SHOPS ---
+window.renderShops = function() {
+    const search = document.getElementById('searchShop').value.toLowerCase();
+    const filter = document.getElementById('filterStatus').value;
+    const today = new Date().toISOString().split('T')[0];
+    
+    let filtered = shopsList.filter(s => {
+        const matchSearch = s.shopName.toLowerCase().includes(search) || s.phone.includes(search);
+        let matchFilter = true;
+        if (filter === 'active') matchFilter = s.status === 'active' && (!s.expiryDate || s.expiryDate >= today);
+        if (filter === 'expired') matchFilter = s.expiryDate && s.expiryDate < today && s.status !== 'suspended';
+        if (filter === 'suspended') matchFilter = s.status === 'suspended';
+        return matchSearch && matchFilter;
+    });
+
     let html = '';
-
-    for (const shopDoc of shopsSnapshot.docs) {
-        const shop = shopDoc.data();
-        totalShops++;
-        
-        if (shop.status === 'active') activeShops++;
-        if (searchVal && !shop.shopName.toLowerCase().includes(searchVal) && !shop.phone.includes(searchVal)) continue;
-
-        // የሱቁን ደንበኞች ቁጥር ማስላት
-        const custQuery = query(collection(db, 'customers'), where('shopId', '==', shop.shopId));
-        const custSnap = await getDocs(custQuery);
-        const customerCount = custSnap.size;
-        totalCustomers += customerCount;
-
-        // የሱቁን ዕዳ ማስላት (sales ላይ በመመስረት)
-        const salesQuery = query(collection(db, 'sales'), where('shopId', '==', shop.shopId));
-        const salesSnap = await getDocs(salesQuery);
-        let shopDebt = 0;
-        
-        salesSnap.forEach(sale => {
-            const paid = sale.data().paidAmount || 0;
-            const total = sale.data().totalAmount || 0;
-            shopDebt += (total - paid);
-        });
-
-        totalDebt += shopDebt;
-
-        const statusColor = shop.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700';
-        const actionText = shop.status === 'active' ? 'Suspend' : 'Activate';
-        const actionColor = shop.status === 'active' ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100';
+    filtered.forEach(s => {
+        const isExpired = s.expiryDate && s.expiryDate < today;
+        let statusBadge = '';
+        if (s.status === 'suspended') statusBadge = '<span class="text-red-600 bg-red-50 border border-red-200 px-2 py-1 rounded text-[10px] font-bold uppercase">Suspended</span>';
+        else if (isExpired) statusBadge = '<span class="text-amber-600 bg-amber-50 border border-amber-200 px-2 py-1 rounded text-[10px] font-bold uppercase">Expired</span>';
+        else statusBadge = '<span class="text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded text-[10px] font-bold uppercase">Active</span>';
 
         html += `
             <tr class="border-b border-slate-50 hover:bg-slate-50 transition">
-                <td class="p-4 font-bold">${shop.shopName}</td>
-                <td class="p-4">${shop.phone}</td>
-                <td class="p-4"><span class="px-2 py-1 rounded text-xs font-bold ${statusColor}">${shop.status}</span></td>
-                <td class="p-4">${customerCount}</td>
-                <td class="p-4 font-bold text-red-500">${shopDebt.toLocaleString()} ETB</td>
                 <td class="p-4">
-                    <button onclick="toggleShopStatus('${shop.shopId}', '${shop.status}')" class="px-3 py-1 rounded text-xs font-bold ${actionColor}">${actionText}</button>
+                    <div class="font-bold text-slate-800">${s.shopName}</div>
+                    <div class="text-xs text-slate-500">${s.phone}</div>
+                </td>
+                <td class="p-4">${statusBadge}</td>
+                <td class="p-4 text-sm font-semibold ${isExpired ? 'text-red-500' : 'text-slate-600'}">${s.expiryDate || 'Not set'}</td>
+                <td class="p-4 text-right space-x-2">
+                    <button onclick="markPaid('${s.id}')" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-3 py-1.5 rounded-lg text-xs font-bold transition" title="Mark as Paid"><i class="fa-solid fa-money-bill"></i></button>
+                    <button onclick="toggleSuspend('${s.id}', '${s.status}')" class="bg-amber-50 text-amber-600 hover:bg-amber-100 px-3 py-1.5 rounded-lg text-xs font-bold transition" title="${s.status === 'active' ? 'Suspend' : 'Activate'}">
+                        <i class="fa-solid ${s.status === 'active' ? 'fa-pause' : 'fa-play'}"></i>
+                    </button>
+                    <button onclick="deleteShop('${s.id}')" class="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1.5 rounded-lg text-xs font-bold transition" title="Delete"><i class="fa-solid fa-trash"></i></button>
                 </td>
             </tr>
         `;
-    }
-
-    document.getElementById('statTotalShops').innerText = totalShops;
-    document.getElementById('statActiveShops').innerText = activeShops;
-    document.getElementById('statTotalDebt').innerText = totalDebt.toLocaleString() + ' ETB';
-    document.getElementById('statTotalCustomers').innerText = totalCustomers;
-    document.getElementById('shopListBody').innerHTML = html || '<tr><td colspan="6" class="p-4 text-center text-slate-400">No shops found.</td></tr>';
-}
-
-window.toggleShopStatus = async function(shopId, currentStatus) {
-    const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
-    if(!confirm(`Are you sure you want to change this shop's status to ${newStatus}?`)) return;
-    
-    try {
-        await updateDoc(doc(db, 'shops', shopId), { status: newStatus });
-        alert(`Shop status changed to ${newStatus}`);
-        await loadAdminData();
-    } catch(e) { alert("Error: " + e.message); }
+    });
+    document.getElementById('shopsTableBody').innerHTML = html || '<tr><td colspan="4" class="p-8 text-center text-slate-400">No shops found matching your search.</td></tr>';
 };
 
-document.getElementById('searchShop').addEventListener('input', loadAdminData);
+document.getElementById('searchShop').addEventListener('input', renderShops);
+document.getElementById('filterStatus').addEventListener('change', renderShops);
+
+// --- RENDER: BILLING ---
+function renderBilling() {
+    let totalCollected = 0;
+    let payments = [];
+    
+    shopsList.forEach(s => {
+        if (s.paymentHistory) {
+            s.paymentHistory.forEach(p => {
+                totalCollected += p.amount;
+                payments.push({ ...p, shopName: s.shopName });
+            });
+        }
+    });
+
+    document.getElementById('statTotalCollected').innerText = totalCollected.toLocaleString() + ' ETB';
+    document.getElementById('statTotalTransactions').innerText = payments.length;
+
+    payments.sort((a, b) => new Date(b.date) - new Date(a.date));
+    let html = '';
+    payments.slice(0, 10).forEach(p => {
+        html += `
+            <tr class="border-b border-slate-50 hover:bg-slate-50">
+                <td class="p-4 font-bold text-slate-800">${p.shopName}</td>
+                <td class="p-4 text-slate-500">${p.date}</td>
+                <td class="p-4 font-bold text-emerald-600">+ ${p.amount} ETB</td>
+                <td class="p-4 text-slate-500">${p.method || 'Cash'}</td>
+            </tr>
+        `;
+    });
+    document.getElementById('billingTableBody').innerHTML = html || '<tr><td colspan="4" class="p-8 text-center text-slate-400">No payments recorded yet.</td></tr>';
+}
+
+// --- RENDER: USERS ---
+window.renderUsers = function() {
+    const search = document.getElementById('searchUser').value.toLowerCase();
+    const filtered = usersList.filter(u => u.email.toLowerCase().includes(search));
+
+    let html = '';
+    filtered.forEach(u => {
+        const shop = shopsList.find(s => s.shopId === u.shopId || s.id === u.shopId);
+        const roleColor = u.role === 'owner' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700';
+        html += `
+            <tr class="border-b border-slate-50 hover:bg-slate-50">
+                <td class="p-4 font-semibold text-slate-800">${u.email}</td>
+                <td class="p-4"><span class="${roleColor} px-2 py-1 rounded text-xs font-bold uppercase">${u.role}</span></td>
+                <td class="p-4 text-slate-500">${shop ? shop.shopName : 'Unknown'}</td>
+                <td class="p-4 text-right">
+                    <button onclick="deleteUser('${u.id}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            </tr>
+        `;
+    });
+    document.getElementById('usersTableBody').innerHTML = html || '<tr><td colspan="4" class="p-8 text-center text-slate-400">No users found.</td></tr>';
+};
+document.getElementById('searchUser').addEventListener('input', renderUsers);
+
+// --- ACTIONS ---
+window.markPaid = async function(shopId) {
+    const months = prompt("ለስንት ወር ክፍያ ተከፍሏል? (ለምሳሌ 1, 3, 12):", "1");
+    if (!months || isNaN(months)) return;
+    
+    const shop = shopsList.find(s => s.id === shopId);
+    const amount = parseFloat(prompt("የተከፈለው መጠን (ETB):", "500")) || 0;
+    
+    const today = new Date();
+    let currentExpiry = shop.expiryDate ? new Date(shop.expiryDate) : new Date();
+    if (currentExpiry < today) currentExpiry = today; // ጊዜው አልፎ ከሆነ ከዛሬ ጀምሮ መቁጠር
+    
+    currentExpiry.setMonth(currentExpiry.getMonth() + parseInt(months));
+    const newExpiryStr = currentExpiry.toISOString().split('T')[0];
+
+    const history = shop.paymentHistory || [];
+    history.push({ date: today.toISOString().split('T')[0], amount: amount, months: parseInt(months), method: 'Manual' });
+
+    try {
+        await updateDoc(doc(db, 'shops', shopId), {
+            expiryDate: newExpiryStr,
+            status: 'active',
+            paymentHistory: history
+        });
+        showToast("✅ ክፍያ ተመዝግቧል! አዲስ ማብቂያ: " + newExpiryStr);
+        loadData();
+    } catch (e) { showToast(e.message, true); }
+};
+
+window.toggleSuspend = async function(shopId, currentStatus) {
+    const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
+    if (!confirm(`እርግጠኛ ነህ? ወደ ${newStatus} ይቀየራል።`)) return;
+    try {
+        await updateDoc(doc(db, 'shops', shopId), { status: newStatus });
+        showToast(`✅ ሁኔታው ወደ ${newStatus} ተቀይሯል`);
+        loadData();
+    } catch (e) { showToast(e.message, true); }
+};
+
+window.deleteShop = async function(shopId) {
+    if (!confirm("⚠️ ይህ ሱቅ እና ተጠቃሚዎቹ ሙሉ በሙሉ ይሰረዛሉ! እርግጠኛ ነህ?")) return;
+    try {
+        // የሱቁን ተጠቃሚዎች ማጥፋት
+        const q = query(collection(db, 'users'), where('shopId', '==', shopId));
+        const snap = await getDocs(q);
+        for (const d of snap.docs) await deleteDoc(doc(db, 'users', d.id));
+        
+        // የሱቁን ዳታ ማጥፋት
+        await deleteDoc(doc(db, 'shops', shopId));
+        showToast("🗑️ ሱቁ ተሰርዟል!");
+        loadData();
+    } catch (e) { showToast(e.message, true); }
+};
+
+window.deleteUser = async function(userId) {
+    if (!confirm("ይህ ተጠቃሚ ይሰረዛል? (ከFirebase Auth ላይ መሰረዝ አይቻልም)")) return;
+    try {
+        await deleteDoc(doc(db, 'users', userId));
+        showToast("🗑️ ተጠቃሚው ተሰርዟል!");
+        loadData();
+    } catch (e) { showToast(e.message, true); }
+};
+
+window.createShop = async function() {
+    const name = document.getElementById('newShopName').value;
+    const phone = document.getElementById('newShopPhone').value;
+    const pass = document.getElementById('newShopPass').value;
+
+    if (!name || !phone || !pass) { showToast("ሁሉንም መሙላት አለብህ", true); return; }
+
+    try {
+        const email = `${phone}@creditapp.com`;
+        // 1. ተጠቃሚ መፍጠር (Secondary App)
+        const secondaryApp = initializeApp(firebaseConfig, "SecondaryAdmin");
+        const secondaryAuth = getAuth(secondaryApp);
+        const userCred = await createUserWithEmailAndPassword(secondaryAuth, email, pass);
+        const uid = userCred.user.uid;
+        await signOut(secondaryAuth);
+
+        // 2. ሱቅ መመዝገብ
+        await setDoc(doc(db, 'shops', uid), {
+            shopId: uid,
+            shopName: name,
+            phone: phone,
+            ownerEmail: email,
+            status: 'active',
+            expiryDate: new Date().toISOString().split('T')[0], // ዛሬ እንዲጀምር
+            paymentHistory: [],
+            createdAt: new Date().toISOString()
+        });
+
+        // 3. ተጠቃሚ መመዝገብ (users)
+        await setDoc(doc(db, 'users', uid), {
+            email: email,
+            phone: phone,
+            role: 'owner',
+            shopId: uid,
+            shopName: name,
+            createdAt: new Date().toISOString()
+        });
+
+        showToast("✅ ሱቅ በተሳካ ሁኔታ ተፈጥሯል!");
+        closeModal('addShopModal');
+        loadData();
+    } catch (e) {
+        showToast(e.message, true);
+    }
+};
+
+// --- SETTINGS ---
+async function loadSupportSettings() {
+    try {
+        const docSnap = await getDoc(doc(db, 'settings', 'support'));
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            document.getElementById('supportPhone').value = data.phone || '';
+            document.getElementById('supportEmail').value = data.email || '';
+            document.getElementById('supportTelegram').value = data.telegram || '';
+        }
+    } catch (e) { console.error(e); }
+}
+
+window.saveSupportInfo = async function() {
+    const phone = document.getElementById('supportPhone').value;
+    const email = document.getElementById('supportEmail').value;
+    const telegram = document.getElementById('supportTelegram').value;
+    try {
+        await setDoc(doc(db, 'settings', 'support'), { phone, email, telegram });
+        showToast("✅ የድጋፍ መረጃ ተቀምጧል!");
+    } catch (e) { showToast(e.message, true); }
+};
+
+window.exportBackup = function() {
+    const data = { shops: shopsList, users: usersList, exportedAt: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `backup-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    showToast("📥 ባክአፕ ወርዷል!");
+};
 </script>
 </body>
 </html>
