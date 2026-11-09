@@ -485,13 +485,36 @@ window.showLogin = function() { document.getElementById('registerFormView').clas
 window.showForgotPassword = function() { document.getElementById('loginFormView').classList.add('hidden'); document.getElementById('registerFormView').classList.add('hidden'); document.getElementById('forgotFormView').classList.remove('hidden'); };
 
 window.login = async function() {
-    const phone = document.getElementById('loginPhone').value.trim(); const pass = document.getElementById('loginPassword').value; const errEl = document.getElementById('loginError'); const btn = document.getElementById('loginBtn');
-    errEl.classList.add('hidden'); if(!phone || !pass) { errEl.innerText = "Fill all fields"; errEl.classList.remove('hidden'); return; }
-    const email = `${phone}@creditapp.com`; btn.innerText = "Signing in..."; btn.disabled = true;
-    try { await signInWithEmailAndPassword(auth, email, pass); } 
-    catch (e) { errEl.innerText = "Invalid phone or password"; errEl.classList.remove('hidden'); btn.innerText = "Sign In"; btn.disabled = false; }
+    let phone = document.getElementById('loginPhone').value.trim(); 
+    const pass = document.getElementById('loginPassword').value; 
+    const errEl = document.getElementById('loginError'); 
+    const btn = document.getElementById('loginBtn');
+    
+    errEl.classList.add('hidden'); 
+    if(!phone || !pass) { errEl.innerText = "Fill all fields"; errEl.classList.remove('hidden'); return; }
+    
+    // ✅ አዲስ፦ የስልክ ቁጥር አጻጻፍን ማስተካከል (ምልክቶችን ማስወገድ)
+    phone = phone.replace(/[^0-9]/g, ''); // ሁሉንም ምልክቶች (+ እና ክፍተት) አስወግድ
+    
+    // ቁጥሩ በ 251 ከጀመረ ወደ 0 መቀየር (ለምሳሌ 251922... -> 0922...)
+    if (phone.startsWith('251')) {
+        phone = '0' + phone.substring(3);
+    }
+    
+    const email = `${phone}@creditapp.com`; 
+    btn.innerText = "Signing in..."; 
+    btn.disabled = true;
+    
+    try { 
+        await signInWithEmailAndPassword(auth, email, pass); 
+    } 
+    catch (e) { 
+        errEl.innerText = "Invalid phone or password"; 
+        errEl.classList.remove('hidden'); 
+        btn.innerText = "Sign In"; 
+        btn.disabled = false; 
+    }
 };
-
 window.register = async function() {
     const shop = document.getElementById('regShopName').value.trim(); 
     const phone = document.getElementById('regPhone').value.trim(); 
