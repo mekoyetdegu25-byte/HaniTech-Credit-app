@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Credit Tracker</title>
 <meta name="theme-color" content="#0f172a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Credit Tracker">
+
+<!-- PWA Manifest & Icons -->
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2966/2966327.png">
+
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Ethiopic:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -291,22 +300,22 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/fireba
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber, updatePassword } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, query, where, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js"; 
 
-// ⚠️ የእርስዎ Firebase Config
+// ⚠️ የእርስዎ Firebase Config እዚህ ያስገቡ
 const firebaseConfig = {
-    apiKey: "AIzaSyAgfUPo0--ZfslsWZeOoHCiEpiUAZX6j_A",
-    authDomain: "hotel-owners-abe2c.firebaseapp.com",
-    projectId: "hotel-owners-abe2c",
-    storageBucket: "hotel-owners-abe2c.firebasestorage.app",
-    messagingSenderId: "372834019536",
-    appId: "1:372834019536:web:9af0dbe99de41f6945d6d5"
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
 }; 
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app); 
 
-// ⚠️ የእርስዎ VAPID Key (አዲሱን የፈጠርከውን እዚህ አስገባ)
-const VAPID_KEY = "BNLbkd5N91CUux9s1O5LasZcccd8xmM5GeIInrZmydbAJ2cFb8u2YLcUigK3DaaOcUOCbvFnOZtikN0rkvkcATU"; 
+// ⚠️ የእርስዎ VAPID Key እዚህ ያስገቡ
+const VAPID_KEY = "YOUR_VAPID_KEY"; 
 
 let currentUser = null;
 let currentShopId = null;
@@ -317,7 +326,6 @@ let salesList = [];
 let paymentsList = [];
 let currentLang = 'en';
 let confirmationResult = null;
-let resetPhoneNumber = null; // ለፓስወርድ ሪሴት የሚያገለግል
 
 const translations = {
     en: {
@@ -370,9 +378,6 @@ function applyLanguage() {
     }
 }
 
-// ==========================================
-// AUTH UI TOGGLES
-// ==========================================
 window.showRegister = function() {
     document.getElementById('loginFormView').classList.add('hidden');
     document.getElementById('registerFormView').classList.remove('hidden');
@@ -382,8 +387,6 @@ window.showLogin = function() {
     document.getElementById('registerFormView').classList.add('hidden');
     document.getElementById('loginFormView').classList.remove('hidden');
     document.getElementById('forgotFormView').classList.add('hidden');
-    
-    // Reset Forgot Form
     document.getElementById('forgotPhoneStep').classList.remove('hidden');
     document.getElementById('forgotOtpStep').classList.add('hidden');
 };
@@ -393,9 +396,6 @@ window.showForgotPassword = function() {
     document.getElementById('forgotFormView').classList.remove('hidden');
 };
 
-// ==========================================
-// AUTH LOGIC (Login & Register)
-// ==========================================
 window.login = async function() {
     const phone = document.getElementById('loginPhone').value.trim();
     const pass = document.getElementById('loginPassword').value;
@@ -436,15 +436,9 @@ window.register = async function() {
     
     try {
         const userCred = await createUserWithEmailAndPassword(auth, email, pass);
-        
         await setDoc(doc(db, 'users', userCred.user.uid), {
-            role: 'owner',
-            phone: phone,
-            shopId: userCred.user.uid,
-            shopName: shop,
-            createdAt: serverTimestamp()
+            role: 'owner', phone: phone, shopId: userCred.user.uid, shopName: shop, createdAt: serverTimestamp()
         });
-        
         showToast("Account created successfully!");
     } catch (e) {
         errEl.innerText = e.message;
@@ -454,12 +448,8 @@ window.register = async function() {
     }
 };
 
-// ==========================================
-// FORGOT PASSWORD (OTP LOGIC)
-// ==========================================
-window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-    'size': 'invisible'
-});
+// OTP Logic
+window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'invisible' });
 
 window.sendResetOTP = async function() {
     const phone = document.getElementById('forgotPhone').value.trim();
@@ -473,10 +463,7 @@ window.sendResetOTP = async function() {
     btn.disabled = true;
 
     try {
-        // የፓስወርድ ሪሴት OTP ለመላክ
         confirmationResult = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
-        resetPhoneNumber = phone;
-        
         document.getElementById('forgotPhoneStep').classList.add('hidden');
         document.getElementById('forgotOtpStep').classList.remove('hidden');
         showToast("Code sent!");
@@ -503,19 +490,12 @@ window.verifyResetOTP = async function() {
     btn.disabled = true;
 
     try {
-        // 1. OTP አረጋግጥ
         const result = await confirmationResult.confirm(code);
         const user = result.user;
-
-        // 2. አዲስ ፓስወርድ ቀይር
         await updatePassword(user, newPass);
-        
-        // 3. ተጠቃሚውን ከ OTP ሎጊን አውጥተን እንደገና በፓስወርድ እንዲገባ እናድርግ
         await signOut(auth);
-        
         showToast("Password reset successfully! Please login.");
         showLogin();
-        
     } catch (error) {
         errEl.innerText = "Invalid code. Try again.";
         errEl.classList.remove('hidden');
@@ -525,9 +505,6 @@ window.verifyResetOTP = async function() {
 };
 
 
-// ==========================================
-// AUTH STATE & MAIN APP
-// ==========================================
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         currentUser = user;
@@ -560,8 +537,6 @@ onAuthStateChanged(auth, async (user) => {
         document.getElementById('authScreen').classList.remove('hidden');
         document.getElementById('mainApp').classList.add('hidden');
         document.getElementById('bottomNav').classList.add('hidden');
-        
-        // Reset buttons
         const loginBtn = document.getElementById('loginBtn');
         if(loginBtn) { loginBtn.innerText = "Sign In"; loginBtn.disabled = false; }
         const regBtn = document.getElementById('regBtn');
@@ -570,39 +545,25 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-window.logout = function() {
-    signOut(auth);
-};
+window.logout = function() { signOut(auth); };
 
-// OWNER: Add Employee
 window.saveEmployee = async function() {
     if (currentUserRole !== 'owner') { showToast("Only owners can add employees", true); return; }
-    
     const name = document.getElementById('empName').value.trim();
     const phone = document.getElementById('empPhone').value.trim();
-    
     if(!name || !phone) { showToast("Fill all fields", true); return; }
 
     try {
         await addDoc(collection(db, 'pending_employees'), {
-            name: name,
-            phone: phone,
-            shopId: currentShopId,
-            shopName: shopName,
-            createdAt: serverTimestamp()
+            name: name, phone: phone, shopId: currentShopId, shopName: shopName, createdAt: serverTimestamp()
         });
-
         showToast("Employee invitation sent!");
         closeModal('employeeModal');
         document.getElementById('empName').value = '';
         document.getElementById('empPhone').value = '';
-        
-    } catch (e) {
-        showToast(e.message, true);
-    }
+    } catch (e) { showToast(e.message, true); }
 };
 
-// DATA LOADING
 async function loadData() {
     if (!currentShopId) return;
     
@@ -622,7 +583,6 @@ async function loadData() {
     snapPay.forEach(doc => paymentsList.push({ id: doc.id, ...doc.data() }));
 }
 
-// CALCULATION HELPERS
 function calculateCustomerDebts() {
     const debts = {};
     salesList.forEach(s => {
@@ -642,21 +602,17 @@ function calculateCustomerDebts() {
     return debts;
 }
 
-// VIEW ROUTING
 window.switchView = function(viewName, navElement) {
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     if (navElement) navElement.classList.add('active');
-    
     const main = document.getElementById('mainContent');
     main.innerHTML = '';
-    
     if (viewName === 'home') renderHome(main);
     else if (viewName === 'customers') renderCustomers(main);
     else if (viewName === 'history') renderHistory(main);
     else if (viewName === 'settings') renderSettings(main);
 };
 
-// RENDER: HOME
 function renderHome(container) {
     const debts = calculateCustomerDebts();
     const totalDebt = Object.values(debts).reduce((a, b) => a + b, 0);
@@ -679,7 +635,6 @@ function renderHome(container) {
                 <h3 class="text-xl font-bold text-emerald-500">${todayPayments.toLocaleString()} <span class="text-xs font-normal text-slate-400">ETB</span></h3>
             </div>
         </div>
-
         <h3 class="text-sm font-bold text-slate-800 mb-3">Quick Actions</h3>
         <div class="grid grid-cols-2 gap-4">
             <div class="action-card" onclick="openCreditSale()">
@@ -718,20 +673,17 @@ window.openCreditSale = function() {
 window.openPayment = function() {
     const sel = document.getElementById('paymentCustomerSelect');
     sel.innerHTML = '<option value="">-- Select Customer --</option>';
-    
     const debts = calculateCustomerDebts();
     customersList.forEach(c => {
         if (debts[c.id] > 0) {
             sel.innerHTML += `<option value="${c.id}">${c.name} (${debts[c.id].toLocaleString()} ETB)</option>`;
         }
     });
-    
     document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0];
     document.getElementById('paymentAmount').value = '';
     openModal('paymentModal');
 };
 
-// SAVE: Credit Sale
 window.saveCreditSale = async function() {
     const custName = document.getElementById('saleCustomerName').value.trim();
     const custPhone = document.getElementById('saleCustomerPhone').value.trim();
@@ -752,36 +704,24 @@ window.saveCreditSale = async function() {
             customerId = existingCust.id;
         } else {
             const newCustRef = await addDoc(collection(db, 'customers'), {
-                name: custName,
-                phone: custPhone,
-                shopId: currentShopId,
-                createdAt: serverTimestamp()
+                name: custName, phone: custPhone, shopId: currentShopId, createdAt: serverTimestamp()
             });
             customerId = newCustRef.id;
         }
         
         await addDoc(collection(db, 'sales'), {
-            customerId: customerId,
-            customerName: custName,
-            customerPhone: custPhone,
-            itemName: itemName,
-            totalAmount: total,
-            paidAmount: paid,
-            date: date,
-            shopId: currentShopId,
-            createdAt: serverTimestamp()
+            customerId: customerId, customerName: custName, customerPhone: custPhone,
+            itemName: itemName, totalAmount: total, paidAmount: paid,
+            date: date, shopId: currentShopId, createdAt: serverTimestamp()
         });
         
         showToast("Sale recorded successfully!");
         closeModal('creditSaleModal');
         await loadData();
         switchView('home');
-    } catch(e) {
-        showToast(e.message, true);
-    }
+    } catch(e) { showToast(e.message, true); }
 };
 
-// SAVE: Payment
 window.savePayment = async function() {
     const custId = document.getElementById('paymentCustomerSelect').value;
     const amount = parseFloat(document.getElementById('paymentAmount').value);
@@ -793,23 +733,15 @@ window.savePayment = async function() {
     
     try {
         await addDoc(collection(db, 'payments'), {
-            customerId: custId,
-            amount: amount,
-            date: date,
-            shopId: currentShopId,
-            createdAt: serverTimestamp()
+            customerId: custId, amount: amount, date: date, shopId: currentShopId, createdAt: serverTimestamp()
         });
-        
         showToast("Payment recorded successfully!");
         closeModal('paymentModal');
         await loadData();
         switchView('home');
-    } catch(e) {
-        showToast(e.message, true);
-    }
+    } catch(e) { showToast(e.message, true); }
 };
 
-// RENDER: CUSTOMERS
 function renderCustomers(container) {
     const debts = calculateCustomerDebts();
     let html = `<h3 class="text-lg font-bold text-slate-800 mb-4">${translations[currentLang].customer_list}</h3>`;
@@ -822,7 +754,6 @@ function renderCustomers(container) {
             const debt = debts[c.id] || 0;
             const debtColor = debt > 0 ? 'text-red-500' : 'text-emerald-500';
             const debtText = debt > 0 ? `${debt.toLocaleString()} ETB` : 'Paid';
-            
             html += `
                 <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center" onclick="viewCustomerProfile('${c.id}')">
                     <div class="flex items-center gap-3">
@@ -844,7 +775,6 @@ function renderCustomers(container) {
     container.innerHTML = html;
 }
 
-// VIEW: Customer Profile
 window.viewCustomerProfile = function(custId) {
     const cust = customersList.find(c => c.id === custId);
     if (!cust) return;
@@ -883,22 +813,18 @@ window.viewCustomerProfile = function(custId) {
             <h3 class="font-bold text-slate-800 text-lg">${cust.name}</h3>
             <p class="text-sm text-slate-500">${cust.phone}</p>
         </div>
-        
         <div class="bg-red-50 border border-red-100 rounded-2xl p-4 text-center mb-6">
             <p class="text-xs text-red-600 font-semibold mb-1">Current Debt (ዕዳ)</p>
             <h3 class="text-2xl font-bold text-red-600">${currentDebt.toLocaleString()} ETB</h3>
         </div>
-        
         <h4 class="font-bold text-slate-800 text-sm mb-3">Transaction History</h4>
         <div class="bg-white rounded-2xl border border-slate-100 p-2 max-h-60 overflow-y-auto hide-scrollbar">
             ${historyHtml}
         </div>
     `;
-    
     openModal('profileModal');
 };
 
-// RENDER: HISTORY
 function renderHistory(container) {
     let historyItems = [];
     salesList.forEach(s => historyItems.push({ type: 'sale', date: s.date, amount: s.totalAmount, name: s.itemName, customerName: s.customerName, timestamp: s.timestamp }));
@@ -943,11 +869,9 @@ function renderHistory(container) {
     container.innerHTML = html;
 }
 
-// RENDER: SETTINGS
 function renderSettings(container) {
     let html = `
         <h3 class="text-lg font-bold text-slate-800 mb-4">Settings</h3>
-        
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-4">
             <div class="p-4 border-b border-slate-100 flex justify-between items-center">
                 <div>
@@ -988,7 +912,6 @@ function renderSettings(container) {
             <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
         </button>
     `;
-    
     container.innerHTML = html;
 }
 
@@ -998,6 +921,17 @@ window.changeLanguage = function(lang) {
     const activeNav = document.querySelector('.nav-item.active');
     if(activeNav) switchView('settings', activeNav);
 };
+
+// ==========================================
+// PWA SERVICE WORKER REGISTRATION
+// ==========================================
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+            .then(registration => { console.log('SW registered: ', registration); })
+            .catch(registrationError => { console.log('SW registration failed: ', registrationError); });
+    });
+}
 
 console.log("✅ Credit Tracker initialized!");
 </script>
