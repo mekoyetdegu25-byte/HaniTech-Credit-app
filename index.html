@@ -664,6 +664,9 @@ async function loadData() {
     snapPrice.forEach(doc => priceList.push({ id: doc.id, ...doc.data() }));
     
     updateItemDatalist();
+        // ✅ NEW: Support Info አስቀድሞ መጫን (ለ Settings ፍጥነት)
+    await loadSupportInfo(); 
+    await checkSubscriptionBanner();
     
     await loadSupportInfo();
     await checkSubscriptionBanner();
@@ -753,7 +756,7 @@ function getCustomerRating(custId) {
     }
 }
 
-window.switchView = async function(viewName, navElement) {
+window.switchView = function(viewName, navElement) {
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); 
     if (navElement) navElement.classList.add('active');
     const main = document.getElementById('mainContent'); main.innerHTML = '';
@@ -762,11 +765,9 @@ window.switchView = async function(viewName, navElement) {
     else if (viewName === 'customers') renderCustomers(main); 
     else if (viewName === 'history') renderHistory(main); 
     else if (viewName === 'pricelist') renderPriceListTab(main); 
-    else if (viewName === 'settings') {
-        // ✅ Settings ሲከፈት ዳታውን አስቀድሞ እንጫን
-        await loadSupportInfo(); 
-        renderSettings(main);
-    }
+    else if (viewName === 'settings') renderSettings(main); // ✅ አሁን ወዲያውኑ ይሳላል
+    else if (viewName === 'dashboard') renderDashboardPage(main);
+};
     else if (viewName === 'dashboard') renderDashboardPage(main);
 };
 
