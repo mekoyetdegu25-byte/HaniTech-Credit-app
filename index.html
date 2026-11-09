@@ -400,6 +400,29 @@
         </div>
     </div>
 </div>
+    <div class="modal-overlay" id="contactAdminModal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold">📞 Contact Admin</h3>
+            <button onclick="closeModal('contactAdminModal')" class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="space-y-3">
+            <p class="text-sm text-slate-500 mb-4">አካውንት ለመክፈት እባክዎ የሚከተሉትን የድጋፍ መረጃዎች ይጠቀሙ፦</p>
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <p class="text-xs text-slate-500">Phone</p>
+                <p class="font-bold" id="loginSupportPhone">+251922138705</p>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <p class="text-xs text-slate-500">Email</p>
+                <p class="font-bold" id="loginSupportEmail">hanitechdigital@gmail.com</p>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <p class="text-xs text-slate-500">Telegram</p>
+                <p class="font-bold" id="loginSupportTelegram">@hanitechdigital</p>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
@@ -467,22 +490,11 @@ function applyLanguage() {
 }
 
 window.showContactAdmin = function() {
-    // 👇 እዚህ ጋር የራስህን መረጃ በቀጥታ ጻፍ
-    const adminPhone = "+251922138705";      // የአድሚኑ ስልክ ቁጥር
-    const adminEmail = "hanitechdigital@gmail.com"; // የአድሚኑ ኢሜይል
-    const adminTelegram = "@hanitechdigital"; // የአድሚኑ ቴሌግራም
-
-    const lpEl = document.getElementById('loginSupportPhone');
-    const leEl = document.getElementById('loginSupportEmail');
-    const ltEl = document.getElementById('loginSupportTelegram');
-    
-    if(lpEl) lpEl.innerText = adminPhone;
-    if(leEl) leEl.innerText = adminEmail;
-    if(ltEl) ltEl.innerText = adminTelegram;
-    
-    // ሞዳሉን ክፈት
+    document.getElementById('loginSupportPhone').innerText = "+251922138705";
+    document.getElementById('loginSupportEmail').innerText = "hanitechdigital@gmail.com";
+    document.getElementById('loginSupportTelegram').innerText = "@hanitechdigital";
     document.getElementById('contactAdminModal').classList.add('open');
-};
+};;
 window.showLogin = function() { document.getElementById('registerFormView').classList.add('hidden'); document.getElementById('loginFormView').classList.remove('hidden'); document.getElementById('forgotFormView').classList.add('hidden'); document.getElementById('forgotPhoneStep').classList.remove('hidden'); document.getElementById('forgotOtpStep').classList.add('hidden'); };
 window.showForgotPassword = function() { document.getElementById('loginFormView').classList.add('hidden'); document.getElementById('registerFormView').classList.add('hidden'); document.getElementById('forgotFormView').classList.remove('hidden'); };
 
