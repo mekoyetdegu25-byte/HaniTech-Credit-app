@@ -300,7 +300,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/fireba
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber, updatePassword } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, query, where, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js"; 
 
-// ⚠️ የእርስዎ Firebase Config እዚህ ያስገቡ
+// ✅ የእርስዎ Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyC3h__9_0HMC0ebr8sFV5_v1fqholtBVFg",
   authDomain: "anitech-credit-app.firebaseapp.com",
@@ -311,11 +311,11 @@ const firebaseConfig = {
   measurementId: "G-4VLCSK8VB3"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+const auth = getAuth(app);
+const db = getFirestore(app); 
 
-// ⚠️ የእርስዎ VAPID Key እዚህ ያስገቡ
+// ⚠️ የእርስዎ VAPID Key (ከ Firebase Console -> Cloud Messaging -> Web Push certificates)
 const VAPID_KEY = "YOUR_VAPID_KEY"; 
 
 let currentUser = null;
