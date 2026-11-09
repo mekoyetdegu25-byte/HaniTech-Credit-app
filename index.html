@@ -24,7 +24,6 @@
     .bg-grad-3 { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
     .bg-grad-4 { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
     .bg-grad-5 { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; }
-    .bg-grad-6 { background: linear-gradient(135deg, #ec4899, #db2777); color: white; }
 
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-around; padding: 10px 0; padding-bottom: env(safe-area-inset-bottom); z-index: 50; }
     .nav-item { display: flex; flex-direction: column; align-items: center; color: #94a3b8; font-size: 11px; font-weight: 500; cursor: pointer; transition: color 0.2s; }
@@ -56,58 +55,102 @@
     <p class="text-slate-400 mt-2 text-sm">Retail Management</p>
 </div>
 
-<!-- LOGIN SCREEN -->
-<div id="loginScreen" class="fixed inset-0 bg-slate-50 z-40 flex flex-col justify-center px-6 hidden">
-    <div class="text-center mb-10">
-        <div class="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/30">
-            <i class="fa-solid fa-mobile-screen text-2xl text-white"></i>
-        </div>
-        <h1 class="text-2xl font-bold text-slate-800">Welcome</h1>
-        <p class="text-slate-500 text-sm mt-1">Sign in with your phone number</p>
-    </div>
+<!-- AUTH SCREEN -->
+<div id="authScreen" class="fixed inset-0 bg-slate-50 z-40 flex flex-col justify-center px-6 hidden">
     
-    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-        <div class="input-group">
-            <label>Phone Number (ስልክ ቁጥር)</label>
-            <input type="tel" id="loginPhone" placeholder="0911223344" class="bg-slate-50">
+    <!-- LOGIN FORM -->
+    <div id="loginFormView">
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/30">
+                <i class="fa-solid fa-mobile-screen text-2xl text-white"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-800">Welcome Back</h1>
+            <p class="text-slate-500 text-sm mt-1">Sign in to your account</p>
         </div>
-        <div class="input-group">
-            <label>Password</label>
-            <input type="password" id="loginPassword" placeholder="••••••••" class="bg-slate-50">
-        </div>
-        <div id="loginError" class="text-red-500 text-sm text-center mb-4 hidden font-medium"></div>
-        <button onclick="login()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-600/30 active:scale-95 transition-transform">Sign In</button>
         
-        <div class="text-center mt-4">
-            <button onclick="openRegister()" class="text-blue-600 text-sm font-semibold">New here? Create Account</button>
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+            <div class="input-group">
+                <label>Phone Number (ስልክ ቁጥር)</label>
+                <input type="tel" id="loginPhone" placeholder="+251911223344" class="bg-slate-50">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" placeholder="••••••••" class="bg-slate-50">
+            </div>
+            <div id="loginError" class="text-red-500 text-sm text-center mb-4 hidden font-medium"></div>
+            <button onclick="login()" id="loginBtn" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-600/30 active:scale-95 transition-transform">Sign In</button>
+            
+            <div class="flex justify-between mt-4">
+                <button onclick="showRegister()" class="text-blue-600 text-sm font-semibold">Create Account</button>
+                <button onclick="showForgotPassword()" class="text-slate-500 text-sm font-semibold">Forgot Password?</button>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- REGISTER SCREEN -->
-<div id="registerScreen" class="fixed inset-0 bg-slate-50 z-40 flex flex-col justify-center px-6 hidden">
-    <div class="text-center mb-6">
-        <h1 class="text-2xl font-bold text-slate-800">Create Account</h1>
-        <p class="text-slate-500 text-sm mt-1">Set up your shop</p>
+    <!-- REGISTER FORM -->
+    <div id="registerFormView" class="hidden">
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold text-slate-800">Create Account</h1>
+            <p class="text-slate-500 text-sm mt-1">Set up your shop</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+            <div class="input-group">
+                <label>Shop Name (የሱቅ ስም)</label>
+                <input type="text" id="regShopName" placeholder="e.g. Abebe Shop" class="bg-slate-50">
+            </div>
+            <div class="input-group">
+                <label>Phone Number</label>
+                <input type="tel" id="regPhone" placeholder="+251911223344" class="bg-slate-50">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="regPassword" placeholder="Min 6 characters" class="bg-slate-50">
+            </div>
+            <div id="regError" class="text-red-500 text-sm text-center mb-4 hidden font-medium"></div>
+            <button onclick="register()" id="regBtn" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-600/30 active:scale-95 transition-transform">Create Account</button>
+            <div class="text-center mt-4">
+                <button onclick="showLogin()" class="text-slate-500 text-sm font-semibold">Already have an account? Sign In</button>
+            </div>
+        </div>
     </div>
-    
-    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-        <div class="input-group">
-            <label>Shop Name (የሱቅ ስም)</label>
-            <input type="text" id="regShopName" placeholder="e.g. Abebe Shop" class="bg-slate-50">
+
+    <!-- FORGOT PASSWORD (OTP) -->
+    <div id="forgotFormView" class="hidden">
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold text-slate-800">Reset Password</h1>
+            <p class="text-slate-500 text-sm mt-1">We'll send a code to your phone</p>
         </div>
-        <div class="input-group">
-            <label>Phone Number</label>
-            <input type="tel" id="regPhone" placeholder="0911223344" class="bg-slate-50">
-        </div>
-        <div class="input-group">
-            <label>Password</label>
-            <input type="password" id="regPassword" placeholder="Min 6 characters" class="bg-slate-50">
-        </div>
-        <div id="regError" class="text-red-500 text-sm text-center mb-4 hidden font-medium"></div>
-        <button onclick="register()" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-600/30 active:scale-95 transition-transform">Create Account</button>
-        <div class="text-center mt-4">
-            <button onclick="openLogin()" class="text-slate-500 text-sm font-semibold">Already have an account? Sign In</button>
+        
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+            <!-- Step 1: Enter Phone -->
+            <div id="forgotPhoneStep">
+                <div class="input-group">
+                    <label>Phone Number (ስልክ ቁጥር)</label>
+                    <input type="tel" id="forgotPhone" placeholder="+251911223344" class="bg-slate-50">
+                </div>
+                <div id="recaptcha-container"></div>
+                <div id="forgotError" class="text-red-500 text-sm text-center mb-4 hidden font-medium"></div>
+                <button onclick="sendResetOTP()" id="sendResetBtn" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl active:scale-95 transition-transform">Send Code</button>
+            </div>
+
+            <!-- Step 2: Verify OTP & New Password -->
+            <div id="forgotOtpStep" class="hidden">
+                <div class="input-group">
+                    <label>Enter 6-Digit Code (ኮድ)</label>
+                    <input type="text" id="forgotOtpCode" placeholder="123456" class="bg-slate-50 text-center text-xl tracking-widest font-bold" maxlength="6">
+                </div>
+                <div class="input-group">
+                    <label>New Password (አዲስ ፓስወርድ)</label>
+                    <input type="password" id="forgotNewPassword" placeholder="Min 6 characters" class="bg-slate-50">
+                </div>
+                <div id="forgotOtpError" class="text-red-500 text-sm text-center mb-4 hidden font-medium"></div>
+                <button onclick="verifyResetOTP()" id="verifyResetBtn" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl active:scale-95 transition-transform">Reset Password</button>
+            </div>
+
+            <div class="text-center mt-4">
+                <button onclick="showLogin()" class="text-slate-500 text-sm font-semibold">Back to Login</button>
+            </div>
         </div>
     </div>
 </div>
@@ -119,7 +162,7 @@
             <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold text-lg" id="userInitial">A</div>
             <div>
                 <h2 class="font-bold text-slate-800 text-sm" id="shopNameDisplay">My Shop</h2>
-                <p class="text-xs text-slate-500" id="userPhoneDisplay">0911223344</p>
+                <p class="text-xs text-slate-500" id="userPhoneDisplay">+251...</p>
             </div>
         </div>
         <div class="flex items-center gap-2">
@@ -154,7 +197,6 @@
 </div>
 
 <!-- MODALS -->
-<!-- New Credit Sale Modal (Includes Customer Details) -->
 <div class="modal-overlay" id="creditSaleModal">
     <div class="modal-content">
         <div class="flex justify-between items-center mb-6">
@@ -194,7 +236,6 @@
     </div>
 </div>
 
-<!-- Record Payment Modal -->
 <div class="modal-overlay" id="paymentModal">
     <div class="modal-content">
         <div class="flex justify-between items-center mb-6">
@@ -217,7 +258,6 @@
     </div>
 </div>
 
-<!-- Add Employee Modal (Owner Only) -->
 <div class="modal-overlay" id="employeeModal">
     <div class="modal-content">
         <div class="flex justify-between items-center mb-6">
@@ -230,17 +270,12 @@
         </div>
         <div class="input-group">
             <label>Phone Number (ስልክ ቁጥር)</label>
-            <input type="tel" id="empPhone" placeholder="0911223344">
-        </div>
-        <div class="input-group">
-            <label>Password</label>
-            <input type="password" id="empPassword" placeholder="Min 6 characters">
+            <input type="tel" id="empPhone" placeholder="+251911223344">
         </div>
         <button onclick="saveEmployee()" class="w-full bg-purple-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-purple-600/30 active:scale-95 transition-transform">Create Employee</button>
     </div>
 </div>
 
-<!-- Customer Profile Modal -->
 <div class="modal-overlay" id="profileModal">
     <div class="modal-content">
         <div class="flex justify-between items-center mb-4">
@@ -253,31 +288,36 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber, updatePassword } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, query, where, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js"; 
 
-// ⚠️ እባክዎ ይህንን በራስዎ Firebase Config ይተኩ
+// ⚠️ የእርስዎ Firebase Config
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyAgfUPo0--ZfslsWZeOoHCiEpiUAZX6j_A",
+    authDomain: "hotel-owners-abe2c.firebaseapp.com",
+    projectId: "hotel-owners-abe2c",
+    storageBucket: "hotel-owners-abe2c.firebasestorage.app",
+    messagingSenderId: "372834019536",
+    appId: "1:372834019536:web:9af0dbe99de41f6945d6d5"
 }; 
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app); 
 
+// ⚠️ የእርስዎ VAPID Key (አዲሱን የፈጠርከውን እዚህ አስገባ)
+const VAPID_KEY = "BNLbkd5N91CUux9s1O5LasZcccd8xmM5GeIInrZmydbAJ2cFb8u2YLcUigK3DaaOcUOCbvFnOZtikN0rkvkcATU"; 
+
 let currentUser = null;
 let currentShopId = null;
-let currentUserRole = 'owner'; // 'owner' or 'employee'
+let currentUserRole = 'owner';
 let shopName = "My Shop";
 let customersList = [];
 let salesList = [];
 let paymentsList = [];
 let currentLang = 'en';
+let confirmationResult = null;
+let resetPhoneNumber = null; // ለፓስወርድ ሪሴት የሚያገለግል
 
 const translations = {
     en: {
@@ -298,7 +338,6 @@ const translations = {
     }
 };
 
-// UI Helpers
 window.showToast = function(msg, isError = false) {
     const existing = document.querySelector('.toast');
     if(existing) existing.remove();
@@ -312,13 +351,11 @@ window.showToast = function(msg, isError = false) {
 window.openModal = function(id) { document.getElementById(id).classList.add('open'); };
 window.closeModal = function(id) { document.getElementById(id).classList.remove('open'); };
 
-// Splash Screen
 setTimeout(() => {
     const splash = document.getElementById('splash');
     if(splash) { splash.style.opacity = '0'; setTimeout(() => splash.remove(), 500); }
 }, 1500);
 
-// Translations Applier
 function applyLanguage() {
     document.querySelectorAll('[data-lang]').forEach(el => {
         const key = el.getAttribute('data-lang');
@@ -333,22 +370,169 @@ function applyLanguage() {
     }
 }
 
-window.openRegister = function() {
-    document.getElementById('loginScreen').classList.add('hidden');
-    document.getElementById('registerScreen').classList.remove('hidden');
+// ==========================================
+// AUTH UI TOGGLES
+// ==========================================
+window.showRegister = function() {
+    document.getElementById('loginFormView').classList.add('hidden');
+    document.getElementById('registerFormView').classList.remove('hidden');
+    document.getElementById('forgotFormView').classList.add('hidden');
 };
-window.openLogin = function() {
-    document.getElementById('registerScreen').classList.add('hidden');
-    document.getElementById('loginScreen').classList.remove('hidden');
+window.showLogin = function() {
+    document.getElementById('registerFormView').classList.add('hidden');
+    document.getElementById('loginFormView').classList.remove('hidden');
+    document.getElementById('forgotFormView').classList.add('hidden');
+    
+    // Reset Forgot Form
+    document.getElementById('forgotPhoneStep').classList.remove('hidden');
+    document.getElementById('forgotOtpStep').classList.add('hidden');
+};
+window.showForgotPassword = function() {
+    document.getElementById('loginFormView').classList.add('hidden');
+    document.getElementById('registerFormView').classList.add('hidden');
+    document.getElementById('forgotFormView').classList.remove('hidden');
 };
 
-// AUTHENTICATION
+// ==========================================
+// AUTH LOGIC (Login & Register)
+// ==========================================
+window.login = async function() {
+    const phone = document.getElementById('loginPhone').value.trim();
+    const pass = document.getElementById('loginPassword').value;
+    const errEl = document.getElementById('loginError');
+    const btn = document.getElementById('loginBtn');
+    
+    errEl.classList.add('hidden');
+    if(!phone || !pass) { errEl.innerText = "Fill all fields"; errEl.classList.remove('hidden'); return; }
+    
+    const email = `${phone}@creditapp.com`;
+    btn.innerText = "Signing in...";
+    btn.disabled = true;
+    
+    try {
+        await signInWithEmailAndPassword(auth, email, pass);
+    } catch (e) {
+        errEl.innerText = "Invalid phone or password";
+        errEl.classList.remove('hidden');
+        btn.innerText = "Sign In";
+        btn.disabled = false;
+    }
+};
+
+window.register = async function() {
+    const shop = document.getElementById('regShopName').value.trim();
+    const phone = document.getElementById('regPhone').value.trim();
+    const pass = document.getElementById('regPassword').value;
+    const errEl = document.getElementById('regError');
+    const btn = document.getElementById('regBtn');
+    
+    errEl.classList.add('hidden');
+    if(!shop || !phone || !pass) { errEl.innerText = "Fill all fields"; errEl.classList.remove('hidden'); return; }
+    if(pass.length < 6) { errEl.innerText = "Password must be at least 6 characters"; errEl.classList.remove('hidden'); return; }
+    
+    const email = `${phone}@creditapp.com`;
+    btn.innerText = "Creating...";
+    btn.disabled = true;
+    
+    try {
+        const userCred = await createUserWithEmailAndPassword(auth, email, pass);
+        
+        await setDoc(doc(db, 'users', userCred.user.uid), {
+            role: 'owner',
+            phone: phone,
+            shopId: userCred.user.uid,
+            shopName: shop,
+            createdAt: serverTimestamp()
+        });
+        
+        showToast("Account created successfully!");
+    } catch (e) {
+        errEl.innerText = e.message;
+        errEl.classList.remove('hidden');
+        btn.innerText = "Create Account";
+        btn.disabled = false;
+    }
+};
+
+// ==========================================
+// FORGOT PASSWORD (OTP LOGIC)
+// ==========================================
+window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+    'size': 'invisible'
+});
+
+window.sendResetOTP = async function() {
+    const phone = document.getElementById('forgotPhone').value.trim();
+    const errEl = document.getElementById('forgotError');
+    const btn = document.getElementById('sendResetBtn');
+    
+    errEl.classList.add('hidden');
+    if(!phone) { errEl.innerText = "Enter phone number"; errEl.classList.remove('hidden'); return; }
+    
+    btn.innerText = "Sending...";
+    btn.disabled = true;
+
+    try {
+        // የፓስወርድ ሪሴት OTP ለመላክ
+        confirmationResult = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
+        resetPhoneNumber = phone;
+        
+        document.getElementById('forgotPhoneStep').classList.add('hidden');
+        document.getElementById('forgotOtpStep').classList.remove('hidden');
+        showToast("Code sent!");
+    } catch (error) {
+        errEl.innerText = error.message;
+        errEl.classList.remove('hidden');
+        btn.innerText = "Send Code";
+        btn.disabled = false;
+        if(window.recaptchaVerifier) window.recaptchaVerifier.clear();
+    }
+};
+
+window.verifyResetOTP = async function() {
+    const code = document.getElementById('forgotOtpCode').value.trim();
+    const newPass = document.getElementById('forgotNewPassword').value;
+    const errEl = document.getElementById('forgotOtpError');
+    const btn = document.getElementById('verifyResetBtn');
+    
+    errEl.classList.add('hidden');
+    if(!code || code.length !== 6) { errEl.innerText = "Enter 6-digit code"; errEl.classList.remove('hidden'); return; }
+    if(!newPass || newPass.length < 6) { errEl.innerText = "New password must be at least 6 characters"; errEl.classList.remove('hidden'); return; }
+
+    btn.innerText = "Verifying...";
+    btn.disabled = true;
+
+    try {
+        // 1. OTP አረጋግጥ
+        const result = await confirmationResult.confirm(code);
+        const user = result.user;
+
+        // 2. አዲስ ፓስወርድ ቀይር
+        await updatePassword(user, newPass);
+        
+        // 3. ተጠቃሚውን ከ OTP ሎጊን አውጥተን እንደገና በፓስወርድ እንዲገባ እናድርግ
+        await signOut(auth);
+        
+        showToast("Password reset successfully! Please login.");
+        showLogin();
+        
+    } catch (error) {
+        errEl.innerText = "Invalid code. Try again.";
+        errEl.classList.remove('hidden');
+        btn.innerText = "Reset Password";
+        btn.disabled = false;
+    }
+};
+
+
+// ==========================================
+// AUTH STATE & MAIN APP
+// ==========================================
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         currentUser = user;
-        currentShopId = user.uid; // Default shop ID is user's UID for owners
+        currentShopId = user.uid;
         
-        // Fetch user data to check role
         try {
             const userDoc = await getDoc(doc(db, 'users', user.uid));
             if (userDoc.exists()) {
@@ -365,8 +549,7 @@ onAuthStateChanged(auth, async (user) => {
             }
         } catch(e) { console.log("User info error", e); }
 
-        document.getElementById('loginScreen').classList.add('hidden');
-        document.getElementById('registerScreen').classList.add('hidden');
+        document.getElementById('authScreen').classList.add('hidden');
         document.getElementById('mainApp').classList.remove('hidden');
         document.getElementById('bottomNav').classList.remove('hidden');
         
@@ -374,61 +557,18 @@ onAuthStateChanged(auth, async (user) => {
         switchView('home');
     } else {
         currentUser = null;
-        document.getElementById('loginScreen').classList.remove('hidden');
-        document.getElementById('registerScreen').classList.add('hidden');
+        document.getElementById('authScreen').classList.remove('hidden');
         document.getElementById('mainApp').classList.add('hidden');
         document.getElementById('bottomNav').classList.add('hidden');
+        
+        // Reset buttons
+        const loginBtn = document.getElementById('loginBtn');
+        if(loginBtn) { loginBtn.innerText = "Sign In"; loginBtn.disabled = false; }
+        const regBtn = document.getElementById('regBtn');
+        if(regBtn) { regBtn.innerText = "Create Account"; regBtn.disabled = false; }
+        showLogin();
     }
 });
-
-window.login = async function() {
-    const phone = document.getElementById('loginPhone').value.trim();
-    const pass = document.getElementById('loginPassword').value;
-    const errEl = document.getElementById('loginError');
-    errEl.classList.add('hidden');
-    
-    if(!phone || !pass) { errEl.innerText = "Fill all fields"; errEl.classList.remove('hidden'); return; }
-    
-    const email = `${phone}@creditapp.com`;
-    
-    try {
-        await signInWithEmailAndPassword(auth, email, pass);
-    } catch (e) {
-        errEl.innerText = "Invalid phone or password";
-        errEl.classList.remove('hidden');
-    }
-};
-
-window.register = async function() {
-    const shop = document.getElementById('regShopName').value.trim();
-    const phone = document.getElementById('regPhone').value.trim();
-    const pass = document.getElementById('regPassword').value;
-    const errEl = document.getElementById('regError');
-    errEl.classList.add('hidden');
-    
-    if(!shop || !phone || !pass) { errEl.innerText = "Fill all fields"; errEl.classList.remove('hidden'); return; }
-    if(pass.length < 6) { errEl.innerText = "Password must be at least 6 characters"; errEl.classList.remove('hidden'); return; }
-    
-    const email = `${phone}@creditapp.com`;
-    
-    try {
-        const userCred = await createUserWithEmailAndPassword(auth, email, pass);
-        
-        // Save User Info
-        await setDoc(doc(db, 'users', userCred.user.uid), {
-            role: 'owner',
-            phone: phone,
-            shopId: userCred.user.uid,
-            shopName: shop,
-            createdAt: serverTimestamp()
-        });
-        
-        showToast("Account created successfully!");
-    } catch (e) {
-        errEl.innerText = e.message;
-        errEl.classList.remove('hidden');
-    }
-};
 
 window.logout = function() {
     signOut(auth);
@@ -440,41 +580,22 @@ window.saveEmployee = async function() {
     
     const name = document.getElementById('empName').value.trim();
     const phone = document.getElementById('empPhone').value.trim();
-    const pass = document.getElementById('empPassword').value;
     
-    if(!name || !phone || !pass) { showToast("Fill all fields", true); return; }
-    if(pass.length < 6) { showToast("Password must be at least 6 characters", true); return; }
-    
-    const email = `${phone}@creditapp.com`;
-    
+    if(!name || !phone) { showToast("Fill all fields", true); return; }
+
     try {
-        // Create Auth User
-        // Note: This will sign out the current owner and sign in the new employee. 
-        // To prevent this, we save current owner, create user, then sign back in.
-        // For simplicity in client-side, we'll use a secondary app instance for creation.
-        
-        const secondaryApp = initializeApp(firebaseConfig, "Secondary");
-        const secondaryAuth = getAuth(secondaryApp);
-        
-        const userCred = await createUserWithEmailAndPassword(secondaryAuth, email, pass);
-        
-        // Save Employee Data to Firestore
-        await setDoc(doc(db, 'users', userCred.user.uid), {
-            role: 'employee',
+        await addDoc(collection(db, 'pending_employees'), {
             name: name,
             phone: phone,
             shopId: currentShopId,
             shopName: shopName,
             createdAt: serverTimestamp()
         });
-        
-        await signOut(secondaryAuth); // Sign out from secondary app
-        
-        showToast("Employee added successfully!");
+
+        showToast("Employee invitation sent!");
         closeModal('employeeModal');
         document.getElementById('empName').value = '';
         document.getElementById('empPhone').value = '';
-        document.getElementById('empPassword').value = '';
         
     } catch (e) {
         showToast(e.message, true);
@@ -598,7 +719,6 @@ window.openPayment = function() {
     const sel = document.getElementById('paymentCustomerSelect');
     sel.innerHTML = '<option value="">-- Select Customer --</option>';
     
-    // Only show customers with debt
     const debts = calculateCustomerDebts();
     customersList.forEach(c => {
         if (debts[c.id] > 0) {
@@ -611,7 +731,7 @@ window.openPayment = function() {
     openModal('paymentModal');
 };
 
-// SAVE: Credit Sale (Auto-creates customer if new)
+// SAVE: Credit Sale
 window.saveCreditSale = async function() {
     const custName = document.getElementById('saleCustomerName').value.trim();
     const custPhone = document.getElementById('saleCustomerPhone').value.trim();
@@ -625,14 +745,12 @@ window.saveCreditSale = async function() {
     }
     
     try {
-        // 1. Check if Customer Exists by Phone
         let customerId = null;
         let existingCust = customersList.find(c => c.phone === custPhone);
         
         if (existingCust) {
             customerId = existingCust.id;
         } else {
-            // Create new customer
             const newCustRef = await addDoc(collection(db, 'customers'), {
                 name: custName,
                 phone: custPhone,
@@ -642,7 +760,6 @@ window.saveCreditSale = async function() {
             customerId = newCustRef.id;
         }
         
-        // 2. Save Sale
         await addDoc(collection(db, 'sales'), {
             customerId: customerId,
             customerName: custName,
@@ -737,7 +854,6 @@ window.viewCustomerProfile = function(custId) {
     const debts = calculateCustomerDebts();
     const currentDebt = debts[custId] || 0;
     
-    // Combine history
     let history = [];
     cSales.forEach(s => history.push({ type: 'sale', date: s.date, amount: s.totalAmount, note: s.itemName }));
     cPayments.forEach(p => history.push({ type: 'payment', date: p.date, amount: p.amount, note: 'Payment' }));
@@ -879,7 +995,6 @@ function renderSettings(container) {
 window.changeLanguage = function(lang) {
     currentLang = lang;
     applyLanguage();
-    // Refresh settings view to update the dropdown
     const activeNav = document.querySelector('.nav-item.active');
     if(activeNav) switchView('settings', activeNav);
 };
