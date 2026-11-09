@@ -409,7 +409,7 @@
 </div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber, updatePassword } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, query, where, doc, getDoc, setDoc, deleteDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js"; 
 
@@ -443,8 +443,8 @@ let cart = [];
 let currentLang = 'en';
 let confirmationResult = null;
 let currentFilter = 'today'; 
-let customDashDate = '';  // ✅ አዲስ
-let customDashMonth = ''; // ✅ አዲስ 
+let customDashDate = '';  
+let customDashMonth = ''; 
 
 // Pagination State
 let customerPage = 1; const customerRowsPerPage = 10;
@@ -587,7 +587,7 @@ function calculateCustomerDebts() {
     paymentsList.forEach(p => { if (debts[p.customerId] !== undefined) { debts[p.customerId] -= p.amount; if (debts[p.customerId] <= 0) delete debts[p.customerId]; } });
     return debts;
 }
-    // ✅ NEW: Calculate Customer Rating
+
 function getCustomerRating(custId) {
     const debts = calculateCustomerDebts();
     const currentDebt = debts[custId] || 0;
@@ -596,11 +596,9 @@ function getCustomerRating(custId) {
         return { text: "🟢 Good Payer", color: "text-emerald-600 bg-emerald-50 border-emerald-200" };
     }
 
-    // ያልተከፈለ ዕዳ ያለበትን የመጨረሻ ቀን መፈለግ
     const customerSales = salesList.filter(s => s.customerId === custId && (s.totalAmount - (s.paidAmount || 0)) > 0);
     if (customerSales.length === 0) return { text: "🟢 Good Payer", color: "text-emerald-600 bg-emerald-50 border-emerald-200" };
 
-    // ከመጨረሻው ሽያጭ ቀን ጀምሮ ያለፉትን ቀናት ማስላት
     customerSales.sort((a, b) => new Date(a.date) - new Date(b.date));
     const firstUnpaidDate = new Date(customerSales[0].date);
     const today = new Date();
@@ -628,7 +626,6 @@ window.setDashboardFilter = function(filter) {
     }
     renderDashboardPage(document.getElementById('mainContent')); 
 };
-window.setCustomDashboardDate = function() { currentFilter = 'custom'; renderDashboardPage(document.getElementById('mainContent')); };
 
 function renderHome(container) {
     const debts = calculateCustomerDebts(); const totalDebt = Object.values(debts).reduce((a, b) => a + b, 0);
@@ -671,10 +668,10 @@ window.autoFillItemPrice = function() {
     const foundItem = priceList.find(i => i.name.toLowerCase() === itemName.toLowerCase());
     if (foundItem) { 
         document.getElementById('saleUnit').value = foundItem.unit || 'piece'; 
-        document.getElementById('saleUnitPrice').value = foundItem.price; // ✅ ዋጋውን በራሱ ሞላ
+        document.getElementById('saleUnitPrice').value = foundItem.price; 
         calcCartItemTotal(); 
     } else {
-        document.getElementById('saleUnitPrice').value = ''; // ካልተገኘ ባዶ ይሁን
+        document.getElementById('saleUnitPrice').value = ''; 
         document.getElementById('saleTotalAmount').value = '';
     }
 };
@@ -704,7 +701,7 @@ window.addToSaleCart = function() {
     
     document.getElementById('saleItemName').value = ''; 
     document.getElementById('saleQty').value = ''; 
-    document.getElementById('saleUnitPrice').value = ''; // ✅ መስኩን አጽዳ
+    document.getElementById('saleUnitPrice').value = ''; 
     document.getElementById('saleTotalAmount').value = '';
     
     renderSaleCart();
@@ -796,7 +793,6 @@ window.saveCreditSale = async function() {
         
         if (existingCust) {
             customerId = existingCust.id; 
-            // ያለውን ደንበኛ መረጃ ማዘመን (አድራሻ ካለ)
             if (custAddress) {
                 await updateDoc(doc(db, 'customers', customerId), { 
                     address: custAddress || existingCust.address || '-'
@@ -917,7 +913,6 @@ function renderCustomerItems() {
         const debtColor = debt > 0 ? 'text-red-500' : 'text-emerald-500'; 
         const debtText = debt > 0 ? `${debt.toLocaleString()} ETB` : 'Paid'; 
         
-        // ✅ ደረጃውን መጥራት
         const rating = getCustomerRating(c.id);
 
         html += `
@@ -961,7 +956,7 @@ window.viewCustomerProfile = function(custId) {
     
     let historyHtml = history.length === 0 ? `<p class="text-center text-slate-400 text-sm py-4">No transactions yet.</p>` : history.map(h => `<div class="flex justify-between items-center py-3 border-b border-slate-100 last:border-0"><div><p class="font-semibold text-slate-800 text-sm">${h.note}</p><p class="text-xs text-slate-500">${h.date}</p></div><p class="font-bold ${h.type === 'sale' ? 'text-amber-500' : 'text-emerald-500'}">${h.type === 'sale' ? '+' : '-'} ${h.amount.toLocaleString()} ETB</p></div>`).join('');
     
-                const content = document.getElementById('profileContent');
+    const content = document.getElementById('profileContent');
     const rating = getCustomerRating(cust.id);
     
     content.innerHTML = `
@@ -1000,8 +995,8 @@ window.viewCustomerProfile = function(custId) {
         </div>
     `;
     openModal('profileModal');
-} // 👈 ይህ መዝጊያ ጠፍቶ ነበር!
-    ✅ NEW: Send Debt History via WhatsApp / Telegram / SMS
+};
+
 window.sendDebtHistory = async function(custId) {
     const cust = customersList.find(c => c.id === custId); 
     if (!cust) return;
@@ -1056,7 +1051,7 @@ window.sendDebtHistory = async function(custId) {
         showToast("Message copied to clipboard! You can paste it in SMS.");
     }
 };
-// ✅ NEW: Direct Payment for Customer from Profile
+
 window.openPaymentForCustomer = function(custId) {
     const sel = document.getElementById('paymentCustomerSelect'); 
     sel.innerHTML = '<option value="">-- Select Customer --</option>';
