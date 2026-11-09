@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Super Admin - HaniTech Credit Tracker</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style> body { font-family: 'Inter', sans-serif; background: #f1f5f9; } </style>
+</head>
+<body class="p-4 md:p-8">
+
+<!-- LOGIN VIEW -->
+<div id="adminLogin" class="max-w-md mx-auto mt-20 bg-white p-8 rounded-2xl shadow-lg">
+    <div class="text-center mb-6">
+        <div class="w-16 h-16 bg-slate-800 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"><i class="fa-solid fa-shield-halved"></i></div>
+        <h1 class="text-2xl font-bold text-slate-800">Super Admin</h1>
+        <p class="text-sm text-slate-500">HaniTech Credit Tracker</p>
+    </div>
+    <div class="space-y-4">
+        <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Admin Email</label>
+            <input type="email" id="adminEmail" class="w-full p-3 border rounded-xl outline-none focus:border-blue-500" placeholder="admin@hanitech.com">
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1">Password</label>
+            <input type="password" id="adminPass" class="w-full p-3 border rounded-xl outline-none focus:border-blue-500" placeholder="••••••••">
+        </div>
+        <div id="adminError" class="text-red-500 text-sm text-center hidden"></div>
+        <button onclick="adminLogin()" class="w-full bg-slate-800 text-white font-bold py-3 rounded-xl hover:bg-slate-900 transition">Login</button>
+    </div>
+</div>
+
+<!-- DASHBOARD VIEW -->
+<div id="adminDashboard" class="hidden max-w-6xl mx-auto">
+    <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-2xl shadow-sm">
+        <div>
+            <h1 class="text-xl font-bold text-slate-800">Admin Portal</h1>
+            <p class="text-xs text-slate-500">Manage all registered shops</p>
+        </div>
+        <button onclick="adminLogout()" class="bg-red-50 text-red-600 px-4 py-2 rounded-lg font-bold text-sm hover:bg-red-100">Logout</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border-l-4 border-blue-500">
+            <p class="text-slate-500 text-xs font-bold mb-1">Total Shops</p>
+            <h3 id="statTotalShops" class="text-2xl font-bold text-slate-800">0</h3>
+        </div>
+        <div class="bg-white p-5 rounded-2xl shadow-sm border-l-4 border-emerald-500">
+            <p class="text-slate-500 text-xs font-bold mb-1">Active Shops</p>
+            <h3 id="statActiveShops" class="text-2xl font-bold text-emerald-600">0</h3>
+        </div>
+        <div class="bg-white p-5 rounded-2xl shadow-sm border-l-4 border-amber-500">
+            <p class="text-slate-500 text-xs font-bold mb-1">Total System Debt</p>
+            <h3 id="statTotalDebt" class="text-2xl font-bold text-amber-600">0 ETB</h3>
+        </div>
+        <div class="bg-white p-5 rounded-2xl shadow-sm border-l-4 border-purple-500">
+            <p class="text-slate-500 text-xs font-bold mb-1">Total Customers</p>
+            <h3 id="statTotalCustomers" class="text-2xl font-bold text-purple-600">0</h3>
+        </div>
+    </div>
+
+    <!-- Shops List -->
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+            <h3 class="font-bold text-slate-800">Registered Shops</h3>
+            <input type="text" id="searchShop" placeholder="🔍 Search..." class="p-2 border rounded-lg text-sm w-48 outline-none">
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
+                        <th class="p-4 font-semibold">Shop Name</th>
+                        <th class="p-4 font-semibold">Phone</th>
+                        <th class="p-4 font-semibold">Status</th>
+                        <th class="p-4 font-semibold">Customers</th>
+                        <th class="p-4 font-semibold">Total Debt</th>
+                        <th class="p-4 font-semibold">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="shopListBody" class="text-sm text-slate-700">
+                    <!-- Data will load here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js"; 
+
+// ⚠️ የእርስዎ Firebase Config (የ Credit Tracker ፕሮጀክት)
+const firebaseConfig = {
+  apiKey: "AIzaSyC3h__9_0HMC0ebr8sFV5_v1fqholtBVFg",
+  authDomain: "anitech-credit-app.firebaseapp.com",
+  projectId: "anitech-credit-app",
+  storageBucket: "anitech-credit-app.firebasestorage.app",
+  messagingSenderId: "860089315804",
+  appId: "1:860089315804:web:63955eea7b3c840990df19",
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app); 
+
+// ⚠️ እባክዎ የአስተዳዳሪ ኢሜልዎን ያስገቡ
+const ADMIN_EMAIL = "admin@hanitech.com"; 
+
+window.adminLogin = async function() {
+    const email = document.getElementById('adminEmail').value;
+    const pass = document.getElementById('adminPass').value;
+    const errEl = document.getElementById('adminError');
+    errEl.classList.add('hidden');
+
+    if (email !== ADMIN_EMAIL) {
+        errEl.innerText = "Unauthorized access.";
+        errEl.classList.remove('hidden');
+        return;
+    }
+
+    try {
+        await signInWithEmailAndPassword(auth, email, pass);
+    } catch (e) {
+        errEl.innerText = "Invalid credentials.";
+        errEl.classList.remove('hidden');
+    }
+};
+
+window.adminLogout = function() { signOut(auth); };
+
+onAuthStateChanged(auth, async (user) => {
+    if (user && user.email === ADMIN_EMAIL) {
+        document.getElementById('adminLogin').classList.add('hidden');
+        document.getElementById('adminDashboard').classList.remove('hidden');
+        await loadAdminData();
+    } else {
+        document.getElementById('adminLogin').classList.remove('hidden');
+        document.getElementById('adminDashboard').classList.add('hidden');
+    }
+});
+
+async function loadAdminData() {
+    const searchVal = document.getElementById('searchShop').value.toLowerCase();
+    const shopsSnapshot = await getDocs(collection(db, 'shops'));
+    let totalShops = 0;
+    let activeShops = 0;
+    let totalDebt = 0;
+    let totalCustomers = 0;
+    let html = '';
+
+    for (const shopDoc of shopsSnapshot.docs) {
+        const shop = shopDoc.data();
+        totalShops++;
+        
+        if (shop.status === 'active') activeShops++;
+        if (searchVal && !shop.shopName.toLowerCase().includes(searchVal) && !shop.phone.includes(searchVal)) continue;
+
+        // የሱቁን ደንበኞች ቁጥር ማስላት
+        const custQuery = query(collection(db, 'customers'), where('shopId', '==', shop.shopId));
+        const custSnap = await getDocs(custQuery);
+        const customerCount = custSnap.size;
+        totalCustomers += customerCount;
+
+        // የሱቁን ዕዳ ማስላት (sales ላይ በመመስረት)
+        const salesQuery = query(collection(db, 'sales'), where('shopId', '==', shop.shopId));
+        const salesSnap = await getDocs(salesQuery);
+        let shopDebt = 0;
+        
+        salesSnap.forEach(sale => {
+            const paid = sale.data().paidAmount || 0;
+            const total = sale.data().totalAmount || 0;
+            shopDebt += (total - paid);
+        });
+
+        totalDebt += shopDebt;
+
+        const statusColor = shop.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700';
+        const actionText = shop.status === 'active' ? 'Suspend' : 'Activate';
+        const actionColor = shop.status === 'active' ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100';
+
+        html += `
+            <tr class="border-b border-slate-50 hover:bg-slate-50 transition">
+                <td class="p-4 font-bold">${shop.shopName}</td>
+                <td class="p-4">${shop.phone}</td>
+                <td class="p-4"><span class="px-2 py-1 rounded text-xs font-bold ${statusColor}">${shop.status}</span></td>
+                <td class="p-4">${customerCount}</td>
+                <td class="p-4 font-bold text-red-500">${shopDebt.toLocaleString()} ETB</td>
+                <td class="p-4">
+                    <button onclick="toggleShopStatus('${shop.shopId}', '${shop.status}')" class="px-3 py-1 rounded text-xs font-bold ${actionColor}">${actionText}</button>
+                </td>
+            </tr>
+        `;
+    }
+
+    document.getElementById('statTotalShops').innerText = totalShops;
+    document.getElementById('statActiveShops').innerText = activeShops;
+    document.getElementById('statTotalDebt').innerText = totalDebt.toLocaleString() + ' ETB';
+    document.getElementById('statTotalCustomers').innerText = totalCustomers;
+    document.getElementById('shopListBody').innerHTML = html || '<tr><td colspan="6" class="p-4 text-center text-slate-400">No shops found.</td></tr>';
+}
+
+window.toggleShopStatus = async function(shopId, currentStatus) {
+    const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
+    if(!confirm(`Are you sure you want to change this shop's status to ${newStatus}?`)) return;
+    
+    try {
+        await updateDoc(doc(db, 'shops', shopId), { status: newStatus });
+        alert(`Shop status changed to ${newStatus}`);
+        await loadAdminData();
+    } catch(e) { alert("Error: " + e.message); }
+};
+
+document.getElementById('searchShop').addEventListener('input', loadAdminData);
+</script>
+</body>
+</html>
