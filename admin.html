@@ -209,7 +209,7 @@
       </div>
       <div class="card">
         <div class="card-title">🆕 አዳዲስ ሱቆች</div>
-        <div id="recentPharmacies"></div>
+        <div id="recentShops"></div>
       </div>
     </section>
 
@@ -445,7 +445,7 @@
       snap.forEach(d => allTenants.push({ id: d.id, ...d.data() }));
       renderStats();
       renderTenantList();
-      renderRecentPharmacies();
+      renderRecentShops();
       renderBilling();
     } catch (e) { console.error(e); toast('ሱቆችን መጫን አልተሳካም: ' + e.message, 'error'); }
 
@@ -491,8 +491,8 @@
     } else banner.style.display = 'none';
   }
 
-  function renderRecentPharmacies() {
-    const el = document.getElementById('recentPharmacies');
+  function renderRecentShops() {
+    const el = document.getElementById('recentShops');
     if (allTenants.length === 0) { el.innerHTML = '<div class="empty"><div class="emoji">📭</div><p>ምንም ሱቅ የለም</p></div>'; return; }
     const sorted = [...allTenants].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')).slice(0, 5);
     el.innerHTML = sorted.map(t => `<div style="padding:10px 0; border-bottom:1px solid #edf2f7;"><strong style="color:#2c5282;">${t.shopName}</strong><div style="font-size:11px; color:#718096;">${t.createdAt ? new Date(t.createdAt).toLocaleDateString() : ''}</div></div>`).join('');
@@ -554,7 +554,7 @@
           <button class="btn btn-info btn-sm" onclick="editTenant('${t.id}')">✏️ አሻሽል</button>
           <button class="btn ${t.status === 'suspended' ? 'btn-success' : 'btn-warning'} btn-sm" onclick="toggleSuspend('${t.id}', '${t.status}')">${t.status === 'suspended' ? '✅ ፍቃድ' : '⏸️ አቁም'}</button>
           <button class="btn btn-primary btn-sm" onclick="viewHistory('${t.id}')">📜 ታሪክ (${(t.paymentHistory || []).length})</button>
-          <button class="btn btn-warning btn-sm" onclick="sendBannerToPharmacy('${t.id}')">📢 ማሳወቂያ</button>
+          <button class="btn btn-warning btn-sm" onclick="sendBannerToShop('${t.id}')">📢 ማሳወቂያ</button>
           <button class="btn btn-info btn-sm" onclick="addEmployeeToTenant('${t.id}', '${t.shopName}')">👷 ሰራተኛ ጨምር</button>
           <button class="btn btn-danger btn-sm btn-full" onclick="deleteTenant('${t.id}')">🗑️ አጥፋ</button>
         </div>
@@ -697,7 +697,7 @@
     showModal('📜 የክፍያ ታሪክ', txt, [{ text: 'ዝጋ', class: 'btn-primary' }]);
   };
 
-  window.sendBannerToPharmacy = async function(id) {
+  window.sendBannerToShop = async function(id) {
     const t = allTenants.find(x => x.id === id);
     if (!t) return;
     const msg = prompt('ለሱቁ የሚላክ መልእክት (ባዶ ብትለው ይወገዳል):', t.subscriptionMessage || '');
