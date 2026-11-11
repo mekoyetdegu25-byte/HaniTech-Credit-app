@@ -785,27 +785,28 @@
   };
  
   // ===== USERS =====
-  window.renderUserList = function() {
+    window.renderUserList = function() {
     const el = document.getElementById('userList');
     const search = (document.getElementById('searchUser')?.value || '').toLowerCase();
-    let filtered = allUsers.filter(u => (u.email || '').toLowerCase().includes(search));
+    let filtered = allUsers.filter(u => (u.email || '').toLowerCase().includes(search) || (u.name || '').toLowerCase().includes(search));
     
     if (!filtered.length) { el.innerHTML = '<div class="empty"><div class="emoji">👤</div><p>ምንም ተጠቃሚ የለም</p></div>'; return; }
     
     el.innerHTML = filtered.map(u => {
       const shop = allTenants.find(t => t.shopId === u.shopId || t.id === u.shopId);
       const roleIcon = u.role === 'owner' ? '👑' : '👷';
+      
       return `<div style="padding:12px; border-bottom:1px solid #edf2f7;">
-        <div style="font-weight:700; color:#2c5282; font-size:13px;">${roleIcon} ${u.email}</div>
+        <div style="font-weight:700; color:#2c5282; font-size:13px;">${roleIcon} ${u.name || u.email}</div>
         <div style="font-size:11px; color:#718096; margin-top:4px;">🏢 ${shop?.shopName || u.shopName || '—'} • ${u.role}</div>
+        <div style="font-size:11px; color:#718096; margin-top:2px;">📞 ${u.phone || '—'}</div>
+        
         <div style="display:flex; gap:6px; margin-top:8px;">
-          <button class="btn btn-info btn-sm" onclick="sendResetLink('${u.email}')">📧 Reset</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">🗑️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">🗑️ አጥፋ</button>
         </div>
       </div>`;
     }).join('');
   };
-
   window.sendResetLink = async function(email) {
     try { await sendPasswordResetEmail(auth, email); toast(`📧 ሊንክ ወደ ${email} ተልኳል`, 'success'); }
     catch (e) { toast(e.message, 'error'); }
