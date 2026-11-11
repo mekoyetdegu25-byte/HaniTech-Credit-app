@@ -126,6 +126,11 @@
     #bottomNav { display: block; }
     .hamburger { display: block; }
   }
+ /* ✅ የ Topbar Logout ቁልፍ ስታይል */
+@media (max-width: 767px) {
+  .topbar { gap: 8px; flex-wrap: nowrap; }
+  .user-chip { display: none; } /* በስልክ ላይ ስሙን ደብቀን ቁልፉን ብቻ እናሳይ */
+}
 </style>
 </head>
 <body>
@@ -191,7 +196,13 @@
         <button class="hamburger" onclick="toggleSidebar()">☰</button>
         <h2 id="pageTitle">📊 Dashboard</h2>
       </div>
-      <div class="user-chip" id="userChip">admin</div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+  <div class="user-chip" id="userChip">admin</div>
+  <!-- ✅ አዲስ የተጨመረ የ Logout ቁልፍ -->
+  <button onclick="adminLogout()" class="btn btn-danger btn-sm" style="width: auto; padding: 6px 12px; border-radius: 20px; margin-bottom: 0;">
+    <span>🚪</span> Logout
+  </button>
+</div>
     </div>
 
     <!-- DASHBOARD -->
