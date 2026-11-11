@@ -756,6 +756,86 @@ onAuthStateChanged(auth, async (user) => {
 
 window.logout = function() { signOut(auth); };
 
+    window.saveEmployee = async function() {
+    const name = document.getElementById('empName').value.trim();
+    const phone = document.getElementById('empPhone').value.trim();
+    const pass = document.getElementById('empPassword').value;
+
+    if (!name || !phone || !pass) { showToast("እባክዎ ሁሉንም መስኮች ይሙሉ", true); return; }
+    if (pass.length < 6) { showToast("ፓስወርድ ቢያንስ 6 ፊደል ይሁን", true); return; }
+
+    const btn = document.querySelector('button[onclick="saveEmployee()"]');
+    const originalText = btn.innerText;
+    btn.innerText = "በመፍጠር ላይ...";
+    btn.disabled = true;
+
+    try {
+        // ✅ 1. የሰራተኛ ብዛት ገደብ (ከ2 መብለጥ እንዳይችል) ማረጋገጥ
+        const qEmp = query(collection(db, 'users'), where('shopId', '==', currentShopId), where('role', '==', 'employee'));
+        const empSnap = await getDocs(qEmp);
+        
+        if (empSnap.size >= 2) {
+            showToast("⚠️ ከ2 በላይ ሰራተኛ መጨመር አይችሉም!", true);
+            btn.innerText = originalText;
+            btn.disabled = false;
+            return;
+        }
+
+        // ስልክ ቁጥሩን ማጽዳት
+        let cleanPhone = phone.replace(/[^0-9]/g, '');
+        if (cleanPhone.startsWith('251')) { cleanPhone = '0' + cleanPhone.substring(3); }
+        const email = `${cleanPhone}@creditapp.com`;
+
+        // ✅ 2. ሰራተኛውን በ Firebase Auth ውስጥ መፍጠር (Secondary App በመጠቀም)
+        const secondaryApp = initializeApp(firebaseConfig, 'Sec-' + Date.now());
+        const secAuth = getAuth(secondaryApp);
+        let newUid = null;
+
+        try {
+            const cred = await createUserWithEmailAndPassword(secAuth, email, pass);
+            newUid = cred.user.uid;
+        } catch (authError) {
+            if (authError.code === 'auth/email-already-in-use') {
+                showToast("ይህ ስልክ ቁጥር አስቀድሞ ተመዝግቧል!", true);
+                await deleteApp(secondaryApp);
+                btn.innerText = originalText;
+                btn.disabled = false;
+                return;
+            } else {
+                throw authError;
+            }
+        } finally {
+            await deleteApp(secondaryApp);
+        }
+
+        // ✅ 3. የተጠቃሚውን መረጃ ወደ Firestore 'users' መመዝገብ
+        await setDoc(doc(db, 'users', newUid), {
+            name: name,
+            phone: cleanPhone,
+            email: email,
+            role: 'employee',
+            shopId: currentShopId,
+            shopName: shopName,
+            isTempPassword: true, // ሲገባ እንዲቀይር
+            createdAt: serverTimestamp()
+        });
+
+        showToast("✅ ሰራተኛው በተሳካ ሁኔታ ተጨምሯል! አሁን መግባት ይችላል።"); 
+        closeModal('employeeModal');
+        
+        // ሳጥኖቹን ማጽዳት
+        document.getElementById('empName').value = '';
+        document.getElementById('empPhone').value = '';
+        document.getElementById('empPassword').value = '';
+
+    } catch (e) {
+        showToast("ስህተት: " + e.message, true);
+    } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
+};
+
 async function loadData() {
     if (!currentShopId) return;
     const qCust = query(collection(db, 'customers'), where('shopId', '==', currentShopId)); 
