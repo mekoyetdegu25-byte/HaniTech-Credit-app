@@ -600,18 +600,65 @@ window.register = async function() {
     }
 };
 
-window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'invisible' });
-
+// ✅ reCAPTCHA በትክክል እንዲሰራ ማስተካከያ
+window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+    'size': 'invisible',
+    'callback': (response) => {
+        // reCAPTCHA ሲሳካ ይህ ይሰራል
+        console.log("reCAPTCHA verified");
+    },
+    'expired-callback': () => {
+        // ጊዜው ሲያልቅ
+        console.log("reCAPTCHA expired");
+    }
+});
 window.sendResetOTP = async function() {
-    const phone = document.getElementById('forgotPhone').value.trim(); const errEl = document.getElementById('forgotError'); const btn = document.getElementById('sendResetBtn');
-    errEl.classList.add('hidden'); if(!phone) { errEl.innerText = "Enter phone number"; errEl.classList.remove('hidden'); return; }
-    btn.innerText = "Sending..."; btn.disabled = true;
-    try {
-        confirmationResult = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
-        document.getElementById('forgotPhoneStep').classList.add('hidden'); document.getElementById('forgotOtpStep').classList.remove('hidden'); showToast("Code sent!");
-    } catch (error) { errEl.innerText = error.message; errEl.classList.remove('hidden'); btn.innerText = "Send Code"; btn.disabled = false; if(window.recaptchaVerifier) window.recaptchaVerifier.clear(); }
-};
+    const phoneInput = document.getElementById('forgotPhone');
+    let phone = phoneInput.value.trim(); 
+    const errEl = document.getElementById('forgotError'); 
+    const btn = document.getElementById('sendResetBtn');
+    
+    errEl.classList.add('hidden'); 
+    if(!phone) { errEl.innerText = "Enter phone number"; errEl.classList.remove('hidden'); return; }
+    
+    // ✅ ስልክ ቁጥሩን በትክክል ማስተካከል (ከ 0 የሚጀምር ከሆነ ወደ +251 መቀየር)
+    phone = phone.replace(/[^0-9+]/g, ''); 
+    if (phone.startsWith('0')) {
+        phone = '+251' + phone.substring(1);
+    } else if (phone.startsWith('251')) {
+        phone = '+' + phone;
+    } else if (!phone.startsWith('+')) {
+        phone = '+251' + phone;
+    }
 
+    btn.innerText = "Sending..."; 
+    btn.disabled = true;
+    
+    try {
+        // reCAPTCHA ን እንደገና ማስጀመር (ለእያንዳንዱ ጥያቄ)
+        if (window.recaptchaVerifier) {
+            window.recaptchaVerifier.clear();
+        }
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { 'size': 'invisible' });
+
+        confirmationResult = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
+        
+        document.getElementById('forgotPhoneStep').classList.add('hidden'); 
+        document.getElementById('forgotOtpStep').classList.remove('hidden'); 
+        showToast("Code sent!");
+        
+    } catch (error) { 
+        console.error(error);
+        errEl.innerText = error.message; 
+        errEl.classList.remove('hidden'); 
+        btn.innerText = "Send Code"; 
+        btn.disabled = false; 
+        
+        if(window.recaptchaVerifier) {
+            window.recaptchaVerifier.clear();
+        }
+    }
+};
 window.verifyResetOTP = async function() {
     const code = document.getElementById('forgotOtpCode').value.trim(); const newPass = document.getElementById('forgotNewPassword').value; const errEl = document.getElementById('forgotOtpError'); const btn = document.getElementById('verifyResetBtn');
     errEl.classList.add('hidden'); if(!code || code.length !== 6) { errEl.innerText = "Enter 6-digit code"; errEl.classList.remove('hidden'); return; }
