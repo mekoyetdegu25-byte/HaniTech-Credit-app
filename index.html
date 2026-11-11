@@ -637,7 +637,40 @@ onAuthStateChanged(auth, async (user) => {
                 currentShopId = uData.shopId || user.uid;
                 shopName = uData.shopName || "My Shop"; 
                 shopPhone = uData.phone || "";
-                
+
+                // ✅ አዲስ ማሻሻያ፦ የሱቁን ሁኔታ ማረጋገጥ
+                const shopDoc = await getDoc(doc(db, 'shops', currentShopId));
+                if (shopDoc.exists()) {
+                    const shopData = shopDoc.data();
+                    const today = new Date();
+                    today.setHours(0,0,0,0);
+                    
+                    const expiry = shopData.expiryDate ? new Date(shopData.expiryDate) : null;
+                    if(expiry) expiry.setHours(0,0,0,0);
+
+                    let daysLeft = null;
+                    if (expiry) {
+                        const diffTime = expiry - today;
+                        daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    }
+
+                    // 1. አድሚን ያገደው (Suspended) ከሆነ -> ወዲያውኑ ይውጣ
+                    if (shopData.status === 'suspended') {
+                        alert("⚠️ ይቅርታ፣ የእርስዎ ሱቅ በአስተዳዳሪው ተቆልፏል። እባክዎ ድጋፍ ያግኙ።");
+                        await signOut(auth);
+                        return;
+                    }
+
+                    // 2. ጊዜው ካለፈ እና ከ3 ቀን በላይ ከሆነ -> በራሱ ተዘግቶ ይውጣ
+                    if (daysLeft !== null && daysLeft < -3) {
+                        alert("🛑 የክፍያ ጊዜዎ ከ3 ቀናት በላይ አልፏል። አካውንትዎ በራሱ ተዘግቷል። እባክዎ አስተዳዳሪውን ያግኙ።");
+                        await updateDoc(doc(db, 'shops', currentShopId), { status: 'suspended' });
+                        await signOut(auth);
+                        return;
+                    }
+                }
+
+                // ... (የተቀረው የ UI ማሳያ ኮድ እንዳለ ይቀጥል)
                 document.getElementById('shopNameDisplay').innerText = shopName;
                 document.getElementById('userPhoneDisplay').innerText = shopPhone || user.email.split('@')[0];
                 document.getElementById('userInitial').innerText = shopName.charAt(0).toUpperCase();
@@ -725,7 +758,7 @@ async function loadSupportInfo() {
     } catch(e) { console.log("Support info error:", e); }
 }
 
-// ✅ NEW: Check Subscription Banner
+// ✅ NEW: Check Subscription Banner (ማሻሻያ የተደረገበት)
 async function checkSubscriptionBanner() {
     if (!currentShopId) return;
     try {
@@ -735,6 +768,18 @@ async function checkSubscriptionBanner() {
             const banner = document.getElementById('subscriptionBanner');
             const bannerText = document.getElementById('subscriptionBannerText');
             
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const expiry = shopData.expiryDate ? new Date(shopData.expiryDate) : null;
+            if(expiry) expiry.setHours(0,0,0,0);
+
+            let daysLeft = null;
+            if (expiry) {
+                const diffTime = expiry - today;
+                daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            }
+
+            // 1. አድሚን የላከው መልእክት ካለ ያሳያል
             if (shopData.subscriptionMessage && shopData.subscriptionMessage.trim() !== '') {
                 let bgColor = '#fef3c7', textColor = '#d97706', borderColor = '#fcd34d';
                 
@@ -749,9 +794,31 @@ async function checkSubscriptionBanner() {
                 banner.style.color = textColor;
                 banner.style.borderBottomColor = borderColor;
                 banner.style.display = 'block';
-            } else {
-                banner.style.display = 'none';
+                return; 
             }
+
+            // 2. ጊዜው ካለፈ (Expired) እና ከ3 ቀን በታች ከሆነ
+            if (daysLeft !== null && daysLeft < 0 && daysLeft >= -3) {
+                bannerText.innerText = `⚠️ የክፍያ ጊዜዎ አልፏል! አካውንትዎ ለመዘጋት ${Math.abs(daysLeft)} ቀን ብቻ ቀርቷል። እባክዎ ወዲያውኑ ይክፈሉ።`;
+                banner.style.background = '#fee2e2';
+                banner.style.color = '#ef4444';
+                banner.style.borderBottomColor = '#fca5a5';
+                banner.style.display = 'block';
+                return;
+            }
+
+            // 3. ለመጨረሻ ክፍያ 3 ቀን ሲቀረው
+            if (daysLeft !== null && daysLeft >= 0 && daysLeft <= 3) {
+                bannerText.innerText = `⏳ የክፍያ ጊዜዎ ለመጨረሻ ${daysLeft} ቀናት ብቻ ቀርተዋል! እባክዎ አስቀድመው ይክፈሉ።`;
+                banner.style.background = '#fef3c7';
+                banner.style.color = '#d97706';
+                banner.style.borderBottomColor = '#fcd34d';
+                banner.style.display = 'block';
+                return;
+            }
+
+            // 4. ሁሉም ነገር ትክክል ከሆነ ደብቅ
+            banner.style.display = 'none';
         }
     } catch(e) { console.log("Banner error:", e); }
 }
