@@ -648,13 +648,14 @@
         createdAt: new Date().toISOString()
       });
 
-      // 3. ወደ users ኮሌክሽን መመዝገብ
+            // 3. ወደ users ኮሌክሽን መመዝገብ (ከ isTempPassword ጋር)
       await setDoc(doc(db, 'users', uid), {
         email: email,
         phone: phone,
         role: 'owner',
         shopId: uid,
         shopName: name,
+        isTempPassword: true, // ✅ ይህ ተጨምሯል
         createdAt: new Date().toISOString()
       });
 
@@ -774,9 +775,14 @@
         await deleteApp(secondaryApp);
       }
       
-      await setDoc(doc(db, 'users', uid), {
-        email: email, phone: phone, role: 'employee', shopId: shopId,
-        shopName: shopName, createdAt: new Date().toISOString()
+            await setDoc(doc(db, 'users', uid), {
+        email: email, 
+        phone: phone, 
+        role: 'employee', 
+        shopId: shopId,
+        shopName: shopName, 
+        isTempPassword: true, // ✅ ይህ ተጨምሯል
+        createdAt: new Date().toISOString()
       });
       
       toast(`✅ ሰራተኛ ተጨምሯል!`, 'success');
