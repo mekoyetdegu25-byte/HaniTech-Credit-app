@@ -122,12 +122,11 @@
     .tenant-actions { grid-template-columns: repeat(3, 1fr); }
     .tenant-actions .btn-full { grid-column: span 1; }
   }
+    /* ✅ በስልክ ላይ Topbar እንዲስተካከል */
   @media (max-width: 767px) {
     #bottomNav { display: block; }
     .hamburger { display: block; }
-  }
-       /* ✅ በስልክ ላይ Topbar እንዲስተካከል */
-  @media (max-width: 767px) {
+    
     .topbar { 
       gap: 5px; 
       flex-wrap: nowrap; 
@@ -135,14 +134,29 @@
       align-items: center;
     }
     .user-chip { 
-      display: none; /* በስልክ ላይ ስሙን (admin) ደብቀን ቁልፉ ብቻ እንዲታይ */
+      display: none; /* በስልክ ላይ ስሙን ደብቀን ቁልፉ ብቻ እንዲታይ */
     }
     .topbar h2 { 
-      font-size: 16px; /* ርዕሱ ትንሽ እንዲሆን ቦታ ለመስጠት */
+      font-size: 15px; 
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    /* ✅ የ Logout ቁልፍ ስታይል */
+    .logout-btn-top {
+      display: inline-block !important; 
+    }
+  }
+  
+  /* በኮምፒውተር ላይ ቁልፉ እንዲታይ */
+  .logout-btn-top {
+    display: none; /* በመጀመሪያ ደብቀነው በስልክ ላይ ብቻ እናሳየው ወይም ሁለቱንም እናሳይ */
+    width: auto; 
+    padding: 6px 12px; 
+    border-radius: 20px; 
+    margin-bottom: 0; 
+    font-size: 12px; 
+    white-space: nowrap;
   }
 </style>
 </head>
@@ -203,21 +217,24 @@
   </aside>
   <div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
 
-  <main id="main">
-        <div class="topbar">
-      <div style="display:flex; align-items:center; gap:10px;">
+    <main id="main">
+    <div class="topbar">
+      <!-- የግራ በኩል (Hamburger እና ርዕስ) -->
+      <div style="display:flex; align-items:center; gap:10px; overflow: hidden;">
         <button class="hamburger" onclick="toggleSidebar()">☰</button>
-        <h2 id="pageTitle">📊 Dashboard</h2>
+        <h2 id="pageTitle" style="margin: 0;">📊 Dashboard</h2>
       </div>
       
-      <!-- ✅ የተስተካከለው የ Topbar ቀኝ ክፍል -->
-      <div style="display: flex; align-items: center; gap: 8px;">
+      <!-- ✅ የቀኝ በኩል (ስም እና የ Logout ቁልፍ) -->
+      <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
         <div class="user-chip" id="userChip">admin</div>
-        <button onclick="adminLogout()" class="btn btn-danger btn-sm" style="width: auto; padding: 6px 12px; border-radius: 20px; margin-bottom: 0; font-size: 12px; white-space: nowrap;">
+        
+        <!-- አዲሱ የ Logout ቁልፍ -->
+        <button onclick="adminLogout()" class="btn btn-danger btn-sm logout-btn-top">
           🚪 Logout
         </button>
       </div>
-    </div>
+    </div>>
 
     <!-- DASHBOARD -->
     <section class="section active" id="section-dashboard">
