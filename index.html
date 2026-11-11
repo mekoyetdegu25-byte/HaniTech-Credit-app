@@ -682,49 +682,24 @@ onAuthStateChanged(auth, async (user) => {
                 const uData = userDoc.data();
                 currentUserRole = uData.role || 'owner'; 
                 currentShopId = uData.shopId || user.uid;
-                shopName = uData.shopName || "My Shop"; 
                 shopPhone = uData.phone || "";
 
-                // ✅ አዲስ ማሻሻያ፦ የሱቁን ሁኔታ ማረጋገጥ
+                // ✅ የሱቁን ስም በትክክል ማምጣት
                 const shopDoc = await getDoc(doc(db, 'shops', currentShopId));
                 if (shopDoc.exists()) {
-                    const shopData = shopDoc.data();
-                    const today = new Date();
-                    today.setHours(0,0,0,0);
-                    
-                    const expiry = shopData.expiryDate ? new Date(shopData.expiryDate) : null;
-                    if(expiry) expiry.setHours(0,0,0,0);
-
-                    let daysLeft = null;
-                    if (expiry) {
-                        const diffTime = expiry - today;
-                        daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    }
-
-                    // 1. አድሚን ያገደው (Suspended) ከሆነ -> ወዲያውኑ ይውጣ
-                    if (shopData.status === 'suspended') {
-                        alert("⚠️ ይቅርታ፣ የእርስዎ ሱቅ በአስተዳዳሪው ተቆልፏል። እባክዎ ድጋፍ ያግኙ።");
-                        await signOut(auth);
-                        return;
-                    }
-
-                    // 2. ጊዜው ካለፈ እና ከ3 ቀን በላይ ከሆነ -> በራሱ ተዘግቶ ይውጣ
-                    if (daysLeft !== null && daysLeft < -3) {
-                        alert("🛑 የክፍያ ጊዜዎ ከ3 ቀናት በላይ አልፏል። አካውንትዎ በራሱ ተዘግቷል። እባክዎ አስተዳዳሪውን ያግኙ።");
-                        await updateDoc(doc(db, 'shops', currentShopId), { status: 'suspended' });
-                        await signOut(auth);
-                        return;
-                    }
+                    shopName = shopDoc.data().shopName || "My Shop";
+                } else {
+                    shopName = uData.shopName || "My Shop";
                 }
 
-                // ... (የተቀረው የ UI ማሳያ ኮድ እንዳለ ይቀጥል)
                 document.getElementById('shopNameDisplay').innerText = shopName;
                 document.getElementById('userPhoneDisplay').innerText = shopPhone || user.email.split('@')[0];
                 document.getElementById('userInitial').innerText = shopName.charAt(0).toUpperCase();
                 document.getElementById('roleBadge').innerText = currentUserRole === 'owner' ? '👑 Owner' : '👤 Employee';
                 document.getElementById('roleBadge').className = currentUserRole === 'owner' ? 'text-xs font-bold px-2 py-1 rounded bg-emerald-100 text-emerald-700' : 'text-xs font-bold px-2 py-1 rounded bg-blue-100 text-blue-700';
 
-                if (uData.isTempPassword) {
+                // ✅ የፓስወርድ ማስተካከያ ሳጥን ማሳየት
+                if (uData.isTempPassword === true) {
                     setTimeout(() => {
                         document.getElementById('tempPasswordModal').classList.add('open');
                     }, 500);
@@ -732,15 +707,12 @@ onAuthStateChanged(auth, async (user) => {
             }
         } catch(e) { console.log("User info error", e); }
         
-        // 1. ገፁን ወዲያውኑ አሳይ
+        // ገፁን አሳይ እና ዳታውን ጫን
         document.getElementById('authScreen').classList.add('hidden'); 
         document.getElementById('mainApp').classList.remove('hidden'); 
         document.getElementById('bottomNav').classList.remove('hidden');
         
-        // 2. ዳታውን ጫን
         await loadData();
-        
-        // 3. ዳታው ከተጫነ በኋላ ገፁን አሳይ
         switchView('home');
         
     } else {
