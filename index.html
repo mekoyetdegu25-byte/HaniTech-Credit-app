@@ -770,7 +770,7 @@ window.logout = function() { signOut(auth); };
     btn.disabled = true;
 
     try {
-        // ✅ 1. የሰራተኛ ብዛት ገደብ (ከ2 መብለጥ እንዳይችል) ማረጋገጥ
+        // 1. የሰራተኛ ብዛት ገደብ ማረጋገጥ
         const qEmp = query(collection(db, 'users'), where('shopId', '==', currentShopId), where('role', '==', 'employee'));
         const empSnap = await getDocs(qEmp);
         
@@ -786,8 +786,9 @@ window.logout = function() { signOut(auth); };
         if (cleanPhone.startsWith('251')) { cleanPhone = '0' + cleanPhone.substring(3); }
         const email = `${cleanPhone}@creditapp.com`;
 
-        // ✅ 2. ሰራተኛውን በ Firebase Auth ውስጥ መፍጠር (Secondary App በመጠቀም)
-        const secondaryApp = initializeApp(firebaseConfig, 'Sec-' + Date.now());
+        // 2. ሰራተኛውን በ Firebase Auth ውስጥ መፍጠር
+        const secondaryAppName = 'Sec-' + Date.now();
+        const secondaryApp = initializeApp(firebaseConfig, secondaryAppName);
         const secAuth = getAuth(secondaryApp);
         let newUid = null;
 
@@ -797,18 +798,20 @@ window.logout = function() { signOut(auth); };
         } catch (authError) {
             if (authError.code === 'auth/email-already-in-use') {
                 showToast("ይህ ስልክ ቁጥር አስቀድሞ ተመዝግቧል!", true);
-                await deleteApp(secondaryApp);
+                await deleteApp(secondaryApp); // ስህተት ሲፈጠር እዚህ ብቻ እናጠፋው
                 btn.innerText = originalText;
                 btn.disabled = false;
                 return;
             } else {
+                await deleteApp(secondaryApp); // ሌላ ስህተት ከሆነም እዚህ እናጠፋው
                 throw authError;
             }
-        } finally {
-            await deleteApp(secondaryApp);
         }
 
-        // ✅ 3. የተጠቃሚውን መረጃ ወደ Firestore 'users' መመዝገብ
+        // ስራው ከተሳካ (finally ስለሌለ እዚህ ብቻ እናጠፋው)
+        await deleteApp(secondaryApp);
+
+        // 3. መረጃውን ወደ Firestore መመዝገብ
         await setDoc(doc(db, 'users', newUid), {
             name: name,
             phone: cleanPhone,
@@ -816,14 +819,13 @@ window.logout = function() { signOut(auth); };
             role: 'employee',
             shopId: currentShopId,
             shopName: shopName,
-            isTempPassword: true, // ሲገባ እንዲቀይር
+            isTempPassword: true, 
             createdAt: serverTimestamp()
         });
 
         showToast("✅ ሰራተኛው በተሳካ ሁኔታ ተጨምሯል! አሁን መግባት ይችላል።"); 
         closeModal('employeeModal');
         
-        // ሳጥኖቹን ማጽዳት
         document.getElementById('empName').value = '';
         document.getElementById('empPhone').value = '';
         document.getElementById('empPassword').value = '';
@@ -835,7 +837,6 @@ window.logout = function() { signOut(auth); };
         btn.disabled = false;
     }
 };
-
 async function loadData() {
     if (!currentShopId) return;
     const qCust = query(collection(db, 'customers'), where('shopId', '==', currentShopId)); 
