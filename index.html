@@ -1530,6 +1530,32 @@ window.deletePriceListItem = async function(itemId) {
     if (!confirm("Delete this item from price list?")) return;
     try { await deleteDoc(doc(db, 'priceList', itemId)); await loadData(); renderPriceList(); showToast("Item deleted!"); } catch(e) { showToast(e.message, true); }
 };
+    window.clearAllData = async function() {
+    if (!confirm("ይህ ተግባር ሁሉንም ደንበኞች፣ ሽያጮች እና ክፍያዎችን በቋሚነት ያጠፋል። እርግጠኛ ነህ?")) return;
+    
+    try {
+        // 1. ደንበኞችን ማጥፋት
+        const qCust = query(collection(db, 'customers'), where('shopId', '==', currentShopId));
+        const snapCust = await getDocs(qCust);
+        for (const d of snapCust.docs) await deleteDoc(d.ref);
+
+        // 2. ሽያጮችን ማጥፋት
+        const qSales = query(collection(db, 'sales'), where('shopId', '==', currentShopId));
+        const snapSales = await getDocs(qSales);
+        for (const d of snapSales.docs) await deleteDoc(d.ref);
+
+        // 3. ክፍያዎችን ማጥፋት
+        const qPay = query(collection(db, 'payments'), where('shopId', '==', currentShopId));
+        const snapPay = await getDocs(qPay);
+        for (const d of snapPay.docs) await deleteDoc(d.ref);
+
+        showToast("ሁሉም ዳታ በተሳካ ሁኔታ ተጠፍቷል!");
+        await loadData();
+        switchView('home');
+    } catch(e) { 
+        showToast("ስህተት: " + e.message, true); 
+    }
+};
 
 function renderSettings(container) {
     let html = `
