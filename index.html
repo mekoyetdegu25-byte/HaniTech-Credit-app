@@ -1076,13 +1076,44 @@ window.savePayment = async function() {
     const amount = parseFloat(document.getElementById('paymentAmount').value); 
     const date = document.getElementById('paymentDate').value;
     
-    if (!custId || isNaN(amount) || amount <= 0 || !date) { showToast("Fill all fields correctly", true); return; }
+    if (!custId || isNaN(amount) || amount <= 0 || !date) { 
+        showToast("Fill all fields correctly", true); return; 
+    }
     
     const selectedItems = [];
     const checkboxes = document.querySelectorAll('#customerDebtList input[type="checkbox"]:checked');
     checkboxes.forEach(cb => selectedItems.push(cb.value));
 
+    if (selectedItems.length === 0) {
+        showToast("Please select at least one unpaid item to apply the payment.", true); 
+        return;
+    }
+
     try {
+        // ✅ ማሻሻያ: ክፍያው ከመመዝገቡ በፊት የሚከፋፈለውን መጠን እናሰላለን
+        let remainingPayment = amount;
+        const salesToUpdate = [];
+
+        for (const saleId of selectedItems) {
+            if (remainingPayment <= 0) break;
+            const sale = salesList.find(s => s.id === saleId);
+            if (sale) {
+                const unpaid = sale.totalAmount - (sale.paidAmount || 0);
+                if (unpaid > 0) {
+                    const payForThis = Math.min(remainingPayment, unpaid);
+                    salesToUpdate.push({ saleId: saleId, payAmount: payForThis, oldPaid: sale.paidAmount || 0 });
+                    remainingPayment -= payForThis;
+                }
+            }
+        }
+
+        // ✅ ማሻሻያ: የተከፈለው ገንዘብ ከሽያጮቹ ጠቅላላ ዕዳ በላይ ከሆነ ስህተት ይመልስ
+        if (remainingPayment > 0.01) { // 0.01 ለትንሽ floating point ልዩነት
+            showToast(`The amount entered (${amount} ETB) exceeds the total unpaid amount of selected items. Please enter a correct amount.`, true); 
+            return;
+        }
+
+        // 1. የክፍያ መዝገቡን መፍጠር (ሙሉ መጠኑ ስለተከፋፈለ ብቻ)
         await addDoc(collection(db, 'payments'), { 
             customerId: custId, 
             amount: amount, 
@@ -1091,23 +1122,20 @@ window.savePayment = async function() {
             createdAt: serverTimestamp() 
         });
 
-        let remainingPayment = amount;
-        for (const saleId of selectedItems) {
-            if (remainingPayment <= 0) break;
-            const sale = salesList.find(s => s.id === saleId);
-            if (sale) {
-                const unpaid = sale.totalAmount - (sale.paidAmount || 0);
-                const payForThis = Math.min(remainingPayment, unpaid);
-                await updateDoc(doc(db, 'sales', saleId), { paidAmount: (sale.paidAmount || 0) + payForThis });
-                remainingPayment -= payForThis;
-            }
+        // 2. የሽያጭ መዝገቦችን ማደስ (update paidAmount)
+        for (const item of salesToUpdate) {
+            await updateDoc(doc(db, 'sales', item.saleId), { 
+                paidAmount: item.oldPaid + item.payAmount 
+            });
         }
 
         showToast("Payment recorded successfully!"); 
         closeModal('paymentModal'); 
         await loadData(); 
         switchView('home'); 
-    } catch(e) { showToast(e.message, true); }
+    } catch(e) { 
+        showToast(e.message, true); 
+    }
 };
 
 function renderCustomers(container) {
