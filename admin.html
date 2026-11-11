@@ -126,22 +126,24 @@
     #bottomNav { display: block; }
     .hamburger { display: block; }
   }
-     /* ✅ በስልክ ላይ Topbar እንዲስተካከል */
-    @media (max-width: 767px) {
-      .topbar { 
-        gap: 5px; 
-        flex-wrap: nowrap; 
-        justify-content: space-between;
-      }
-      .user-chip { 
-        display: inline-block; /* ስሙ እንዲታይ */
-        padding: 4px 8px;
-        font-size: 11px;
-      }
-      .topbar h2 { 
-        font-size: 16px; /* ርዕሱ ትንሽ እንዲሆን ቦታ ለመስጠት */
-      }
+       /* ✅ በስልክ ላይ Topbar እንዲስተካከል */
+  @media (max-width: 767px) {
+    .topbar { 
+      gap: 5px; 
+      flex-wrap: nowrap; 
+      justify-content: space-between;
+      align-items: center;
     }
+    .user-chip { 
+      display: none; /* በስልክ ላይ ስሙን (admin) ደብቀን ቁልፉ ብቻ እንዲታይ */
+    }
+    .topbar h2 { 
+      font-size: 16px; /* ርዕሱ ትንሽ እንዲሆን ቦታ ለመስጠት */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
 </style>
 </head>
 <body>
@@ -202,18 +204,19 @@
   <div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
 
   <main id="main">
-    <div class="topbar">
+        <div class="topbar">
       <div style="display:flex; align-items:center; gap:10px;">
         <button class="hamburger" onclick="toggleSidebar()">☰</button>
         <h2 id="pageTitle">📊 Dashboard</h2>
       </div>
-      <<div style="display: flex; align-items: center; gap: 8px;">
-  <div class="user-chip" id="userChip">admin</div>
-  <!-- ✅ አዲስ የተጨመረ የ Logout ቁልፍ -->
-  <button onclick="adminLogout()" class="btn btn-danger btn-sm" style="width: auto; padding: 6px 12px; border-radius: 20px; margin-bottom: 0; font-size: 12px; white-space: nowrap;">
-    🚪 Logout
-  </button>
-</div>
+      
+      <!-- ✅ የተስተካከለው የ Topbar ቀኝ ክፍል -->
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <div class="user-chip" id="userChip">admin</div>
+        <button onclick="adminLogout()" class="btn btn-danger btn-sm" style="width: auto; padding: 6px 12px; border-radius: 20px; margin-bottom: 0; font-size: 12px; white-space: nowrap;">
+          🚪 Logout
+        </button>
+      </div>
     </div>
 
     <!-- DASHBOARD -->
