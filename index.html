@@ -386,16 +386,26 @@
 <!-- Temp Password Modal -->
 <div class="modal-overlay" id="tempPasswordModal">
     <div class="modal-content" style="max-width: 400px;">
-        <div class="modal-header" style="background: #fef3c7; border-bottom: 1px solid #fcd34d;">
-            <h3 style="color: #d97706;">🔐 Change Temporary Password</h3>
+        <div class="flex justify-between items-center mb-4 pb-3 border-b border-amber-200">
+            <h3 class="text-lg font-bold text-amber-600 flex items-center gap-2">
+                🔐 Change Temporary Password
+            </h3>
         </div>
-        <div class="modal-body">
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">እባክህ ጊዜያዊ ፓስወርድህን ቀይረህ ወደ ሲስተሙ ግባ።</p>
-            <label class="field-label" for="newPassInput">🔒 New Password</label>
-            <input type="password" id="newPassInput" placeholder="Enter new password (min 6 chars)">
-            <label class="field-label" for="confirmPassInput">✅ Confirm Password</label>
-            <input type="password" id="confirmPassInput" placeholder="Re-enter new password">
-            <button class="btn btn-primary" style="margin-top: 20px;" onclick="updateTempPassword()">Update Password</button>
+        
+        <div class="mb-4">
+            <p class="text-sm text-slate-500 mb-4">እባክህ ጊዜያዊ ፓስወርድህን ቀይረህ ወደ ሲስተሙ ግባ።</p>
+            
+            <div class="input-group">
+                <label for="newPassInput">🔒 New Password</label>
+                <input type="password" id="newPassInput" placeholder="Enter new password (min 6 chars)">
+            </div>
+            
+            <div class="input-group">
+                <label for="confirmPassInput">✅ Confirm Password</label>
+                <input type="password" id="confirmPassInput" placeholder="Re-enter new password">
+            </div>
+            
+            <button class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-600/30 active:scale-95 transition-transform mt-2" onclick="updateTempPassword()">Update Password</button>
         </div>
     </div>
 </div>
