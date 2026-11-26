@@ -433,6 +433,48 @@
     </div>
 </div>
 
+<!-- ADDED: SUBSCRIPTION BANNER ACTION & SETTINGS SUBSCRIPTION/BILL -->
+<div class="modal-overlay" id="subBillRequestModal">
+    <div class="modal-content" style="max-width: 420px;">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold">💳 Subscription & Bill ጥያቄ</h3>
+            <button onclick="closeModal('subBillRequestModal')" class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="input-group">
+            <label>የክፍያ ጊዜ (Billing Cycle)</label>
+            <select id="subReqCycle" onchange="syncSubReqAmount()">
+                <option value="monthly">Monthly (30 days)</option>
+                <option value="quarterly">Quarterly (90 days)</option>
+                <option value="semiannual">Semi-Annual (180 days)</option>
+                <option value="annual">Annual (365 days)</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>መጠን (Amount ETB) *</label>
+            <input type="number" id="subReqAmount" min="1" step="0.01" placeholder="500">
+        </div>
+        <div class="input-group">
+            <label>የክፍያ ዘዴ (Payment Method) *</label>
+            <select id="subReqMethod">
+                <option value="Telebirr">📱 Telebirr</option>
+                <option value="CBE">🏦 CBE</option>
+                <option value="Bank Transfer">🏛️ Bank Transfer</option>
+                <option value="Cash">💵 Cash</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>የደረሰኝ / TXN ቁጥር ወይም ማስታወሻ</label>
+            <input type="text" id="subReqNote" placeholder="TXN ID ወይም ማስታወሻ...">
+        </div>
+        <div class="input-group">
+            <label>📷 የክፍያ Screenshot</label>
+            <input type="file" id="subReqScreenshot" accept="image/*" style="padding:10px;">
+        </div>
+        <div id="subReqStatusMsg" class="hidden text-sm font-semibold text-center mb-3 p-2 rounded-lg"></div>
+        <button onclick="submitSubBillRequest()" id="subReqSubmitBtn" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-emerald-600/30 active:scale-95 transition-transform">📤 የክፍያ ጥያቄ ላክ</button>
+    </div>
+</div>
+
 <script type="module">
     import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
@@ -850,6 +892,11 @@ async function loadData() {
 
 // ✅ NEW: Load Support Info (Globally)
 let globalSupportInfo = { phone: '...', email: '...', telegram: '...' };
+let currentShopSubscriptionData = null;
+let subPricingConfig = {
+    basic: { monthly: 500, quarterly: 1400, semiannual: 2700, annual: 5000 },
+    pro: { monthly: 1000, quarterly: 2800, semiannual: 5400, annual: 10000 }
+};
 
 async function loadSupportInfo() {
     try {
@@ -872,11 +919,24 @@ async function loadSupportInfo() {
 async function checkSubscriptionBanner() {
     if (!currentShopId) return;
     try {
+        try {
+            const pSnap = await getDoc(doc(db, 'appSettings', 'pricing'));
+            if (pSnap.exists()) {
+                const pd = pSnap.data();
+                subPricingConfig = {
+                    basic: { ...subPricingConfig.basic, ...(pd.basic || {}) },
+                    pro: { ...subPricingConfig.pro, ...(pd.pro || {}) }
+                };
+            }
+        } catch (_) {}
+
         const shopDoc = await getDoc(doc(db, 'shops', currentShopId));
         if (shopDoc.exists()) {
             const shopData = shopDoc.data();
+            currentShopSubscriptionData = shopData;
             const banner = document.getElementById('subscriptionBanner');
             const bannerText = document.getElementById('subscriptionBannerText');
+            const renewBtnHtml = `<button type="button" onclick="openSubBillRequestModal()" style="margin-left:10px; padding:4px 10px; border-radius:8px; border:none; background:#1e293b; color:#ffffff; font-size:12px; font-weight:700; cursor:pointer;">💳 ክፍያ ጠይቅ / አድስ</button>`;
             
             const today = new Date();
             today.setHours(0,0,0,0);
@@ -889,6 +949,15 @@ async function checkSubscriptionBanner() {
                 daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             }
 
+            if (shopData.status === 'suspended' || shopData.isSuspended) {
+                bannerText.innerHTML = `⛔ ሱቅዎ ታግዷል። ለማስቀጠል የክፍያ ጥያቄ ይላኩ። ${renewBtnHtml}`;
+                banner.style.background = '#fee2e2';
+                banner.style.color = '#ef4444';
+                banner.style.borderBottomColor = '#fca5a5';
+                banner.style.display = 'block';
+                return;
+            }
+
             // 1. አድሚን የላከው መልእክት ካለ ያሳያል
             if (shopData.subscriptionMessage && shopData.subscriptionMessage.trim() !== '') {
                 let bgColor = '#fef3c7', textColor = '#d97706', borderColor = '#fcd34d';
@@ -899,7 +968,7 @@ async function checkSubscriptionBanner() {
                     bgColor = '#dcfce7'; textColor = '#166534'; borderColor = '#86efac';
                 }
 
-                bannerText.innerText = shopData.subscriptionMessage;
+                bannerText.innerHTML = `${shopData.subscriptionMessage} ${renewBtnHtml}`;
                 banner.style.background = bgColor;
                 banner.style.color = textColor;
                 banner.style.borderBottomColor = borderColor;
@@ -909,7 +978,7 @@ async function checkSubscriptionBanner() {
 
             // 2. ጊዜው ካለፈ (Expired) እና ከ3 ቀን በታች ከሆነ
             if (daysLeft !== null && daysLeft < 0 && daysLeft >= -3) {
-                bannerText.innerText = `⚠️ የክፍያ ጊዜዎ አልፏል! አካውንትዎ ለመዘጋት ${Math.abs(daysLeft)} ቀን ብቻ ቀርቷል። እባክዎ ወዲያውኑ ይክፈሉ።`;
+                bannerText.innerHTML = `⚠️ የክፍያ ጊዜዎ አልፏል! አካውንትዎ ለመዘጋት ${Math.abs(daysLeft)} ቀን ብቻ ቀርቷል። እባክዎ ወዲያውኑ ይክፈሉ። ${renewBtnHtml}`;
                 banner.style.background = '#fee2e2';
                 banner.style.color = '#ef4444';
                 banner.style.borderBottomColor = '#fca5a5';
@@ -919,7 +988,7 @@ async function checkSubscriptionBanner() {
 
             // 3. ለመጨረሻ ክፍያ 3 ቀን ሲቀረው
             if (daysLeft !== null && daysLeft >= 0 && daysLeft <= 3) {
-                bannerText.innerText = `⏳ የክፍያ ጊዜዎ ለመጨረሻ ${daysLeft} ቀናት ብቻ ቀርተዋል! እባክዎ አስቀድመው ይክፈሉ።`;
+                bannerText.innerHTML = `⏳ የክፍያ ጊዜዎ ለመጨረሻ ${daysLeft} ቀናት ብቻ ቀርተዋል! እባክዎ አስቀድመው ይክፈሉ። ${renewBtnHtml}`;
                 banner.style.background = '#fef3c7';
                 banner.style.color = '#d97706';
                 banner.style.borderBottomColor = '#fcd34d';
@@ -932,6 +1001,99 @@ async function checkSubscriptionBanner() {
         }
     } catch(e) { console.log("Banner error:", e); }
 }
+
+window.syncSubReqAmount = function() {
+    const cycle = document.getElementById('subReqCycle')?.value || 'monthly';
+    const plan = currentShopSubscriptionData?.plan || 'basic';
+    const amt = subPricingConfig[plan]?.[cycle] ?? subPricingConfig.basic[cycle] ?? 500;
+    const input = document.getElementById('subReqAmount');
+    if (input) input.value = amt;
+};
+
+window.openSubBillRequestModal = function() {
+    syncSubReqAmount();
+    const st = document.getElementById('subReqStatusMsg');
+    if (st) { st.classList.add('hidden'); st.innerText = ''; }
+    openModal('subBillRequestModal');
+};
+
+function readFileAsBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+window.submitSubBillRequest = async function() {
+    const st = document.getElementById('subReqStatusMsg');
+    const btn = document.getElementById('subReqSubmitBtn');
+    if (!currentUser || !currentShopId) {
+        if (st) { st.className = 'text-sm font-semibold text-center mb-3 p-2 rounded-lg bg-red-100 text-red-700'; st.innerText = '⚠️ እባክዎ መጀመሪያ ይግቡ'; }
+        return;
+    }
+
+    const cycle = document.getElementById('subReqCycle').value;
+    const amount = parseFloat(document.getElementById('subReqAmount').value) || 0;
+    const method = document.getElementById('subReqMethod').value;
+    const note = document.getElementById('subReqNote').value.trim();
+    const fileInput = document.getElementById('subReqScreenshot');
+    const file = fileInput?.files?.[0];
+
+    if (amount <= 0) {
+        st.className = 'text-sm font-semibold text-center mb-3 p-2 rounded-lg bg-red-100 text-red-700';
+        st.innerText = '⚠️ እባክዎ የክፍያ መጠን ያስገቡ';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = '⏳ በመላክ ላይ...';
+
+    try {
+        let screenshotUrl = '';
+        if (file) {
+            if (file.size > 900 * 1024) throw new Error('የScreenshot መጠን ከ 900KB ያነሰ ይሁን');
+            screenshotUrl = await readFileAsBase64(file);
+        }
+
+        const cycleDaysMap = { monthly: 30, quarterly: 90, semiannual: 180, annual: 365 };
+        const baseDate = (currentShopSubscriptionData?.expiryDate && new Date(currentShopSubscriptionData.expiryDate) > new Date())
+            ? new Date(currentShopSubscriptionData.expiryDate)
+            : new Date();
+        baseDate.setHours(0, 0, 0, 0);
+        baseDate.setDate(baseDate.getDate() + (cycleDaysMap[cycle] || 30));
+        const requestedExpiryDate = baseDate.toISOString().split('T')[0];
+
+        await addDoc(collection(db, 'billingRequests'), {
+            shopId: currentShopId,
+            tenantId: currentShopId,
+            shopName: shopName,
+            tenantName: shopName,
+            requesterEmail: currentUser.email,
+            plan: currentShopSubscriptionData?.plan || 'basic',
+            cycle,
+            amount,
+            method,
+            note,
+            screenshotUrl,
+            requestedExpiryDate,
+            status: 'pending',
+            createdAt: serverTimestamp()
+        });
+
+        st.className = 'text-sm font-semibold text-center mb-3 p-2 rounded-lg bg-emerald-100 text-emerald-700';
+        st.innerText = '✅ የክፍያ ጥያቄዎ ተልኳል! Admin ሲያረጋግጠው ይታደሳል።';
+        if (fileInput) fileInput.value = '';
+        document.getElementById('subReqNote').value = '';
+    } catch (e) {
+        st.className = 'text-sm font-semibold text-center mb-3 p-2 rounded-lg bg-red-100 text-red-700';
+        st.innerText = '❌ ስህተት: ' + e.message;
+    } finally {
+        btn.disabled = false;
+        btn.innerText = '📤 የክፍያ ጥያቄ ላክ';
+    }
+};
 
 function updateItemDatalist() {
     const datalist = document.getElementById('itemDatalist'); if (!datalist) return; datalist.innerHTML = '';
@@ -1763,8 +1925,32 @@ window.deletePriceListItem = async function(itemId) {
 };
 
 function renderSettings(container) {
+    const planLabel = (currentShopSubscriptionData?.plan || 'basic').toUpperCase();
+    const expLabel = currentShopSubscriptionData?.expiryDate || '-';
+    const lastPayLabel = currentShopSubscriptionData?.lastPaymentAmount
+        ? `${currentShopSubscriptionData.lastPaymentAmount} ETB (${currentShopSubscriptionData.lastPaymentMethod || '-'})`
+        : '-';
+
     let html = `
         <h3 class="text-lg font-bold text-slate-800 mb-4">Settings</h3>
+
+        <!-- Subscription & Bill (Collapsible) -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-4">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center cursor-pointer" onclick="document.getElementById('secSubBill').classList.toggle('hidden'); this.querySelector('.arrow').classList.toggle('rotate-90');">
+                <p class="font-bold text-slate-800 text-sm">💳 Subscription & Bill</p>
+                <i class="fa-solid fa-chevron-right text-slate-400 text-xs transition-transform arrow"></i>
+            </div>
+            <div id="secSubBill" class="p-4 hidden">
+                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 mb-3 text-xs space-y-1">
+                    <p>🏷️ Plan: <b class="text-slate-800">${planLabel}</b></p>
+                    <p>📅 Expiry Date: <b class="text-slate-800">${expLabel}</b></p>
+                    <p>💰 Last Payment: <b class="text-slate-800">${lastPayLabel}</b></p>
+                </div>
+                <button onclick="openSubBillRequestModal()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl text-sm active:scale-95 transition-transform">
+                    📤 የክፍያ ጥያቄ ላክ (with Screenshot)
+                </button>
+            </div>
+        </div>
         
         <!-- Shop Profile (Collapsible) -->
         <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-4">
