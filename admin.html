@@ -2,161 +2,226 @@
 <html lang="am">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Super Admin Panel - HaniTech Credit</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Super Admin - HaniTech Credit</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
-  body { background: #f0f4f8; color: #1a202c; font-size: 15px; min-height: 100vh; overflow-x: hidden; }
-  input, select, textarea { width: 100%; padding: 12px 14px; font-size: 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; background: #f7fafc; outline: none; transition: border-color 0.2s, background 0.2s; }
-  input:focus, select:focus, textarea:focus { border-color: #3182ce; background: #fff; }
-  label { display: block; font-size: 12px; font-weight: 700; color: #4a5568; margin-bottom: 6px; }
-
-  /* LOGIN */
-  #loginScreen { position: fixed; inset: 0; background: linear-gradient(135deg, #1a365d 0%, #2b6cb0 50%, #3182ce 100%); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 2000; }
-  .login-box { background: #fff; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); padding: 32px 24px; width: 100%; max-width: 400px; }
-  .login-box h1 { text-align: center; color: #1a365d; font-size: 20px; margin-bottom: 20px; font-weight: 800; }
-  .form-group { margin-bottom: 14px; }
-  .btn-login { width: 100%; padding: 15px; font-size: 16px; font-weight: 800; border: none; border-radius: 12px; background: linear-gradient(135deg, #1a365d, #2c5282); color: #fff; cursor: pointer; margin-top: 8px; }
-  #loginError { color: #c53030; text-align: center; margin-bottom: 10px; font-size: 13px; display: none; }
-
-  /* APP */
-  #app { display: none; }
-  #sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: 250px; background: #1a365d; color: #cbd5e0; z-index: 100; display: flex; flex-direction: column; transform: translateX(-100%); transition: transform 0.3s ease; }
-  #sidebar.open { transform: translateX(0); }
-  .sb-brand { padding: 22px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-  .sb-brand h1 { color: #fff; font-size: 17px; font-weight: 800; }
-  .sb-brand small { display: block; color: #718096; font-size: 11px; margin-top: 4px; font-weight: 600; }
-  .sb-nav { flex: 1; overflow-y: auto; padding: 10px 0; }
-  .sb-item { display: flex; align-items: center; gap: 12px; padding: 12px 20px; cursor: pointer; font-size: 14px; font-weight: 600; border-left: 3px solid transparent; transition: background 0.15s; }
-  .sb-item:hover { background: rgba(255,255,255,0.06); }
-  .sb-item.active { background: rgba(49,130,206,0.25); border-left-color: #3182ce; color: #fff; }
-  .sb-item .icon { width: 20px; text-align: center; font-size: 16px; }
-  .sb-item .badge { margin-left: auto; background: #c53030; color: #fff; padding: 1px 7px; border-radius: 10px; font-size: 10px; font-weight: 800; }
-  .sb-footer { padding: 15px 20px; border-top: 1px solid rgba(255,255,255,0.1); }
-  .btn-logout { width: 100%; padding: 10px; background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; }
-  .btn-logout:hover { background: rgba(197,48,48,0.6); }
-  .sb-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 90; }
-  .sb-overlay.show { display: block; }
-
-  #main { padding: 16px; padding-bottom: 90px; transition: margin-left 0.3s ease; }
-  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 12px; }
-  .topbar h2 { font-size: 20px; font-weight: 800; color: #1a365d; }
-  .hamburger { display: none; background: #fff; border: 1px solid #e2e8f0; width: 40px; height: 40px; border-radius: 10px; font-size: 18px; cursor: pointer; }
-  .user-chip { background: #fff; border: 1px solid #e2e8f0; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #4a5568; }
-
-  .section { display: none; animation: fadeIn 0.25s ease; }
-  .section.active { display: block; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-  .card { background: #fff; border-radius: 14px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); margin-bottom: 14px; }
-  .card-title { font-size: 15px; font-weight: 800; color: #2d3748; margin-bottom: 12px; }
-
-  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-  .stat-card { background: #fff; border-radius: 14px; padding: 16px 10px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
-  .stat-card .value { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
-  .stat-card .label { font-size: 11px; color: #718096; font-weight: 700; }
-  .val-blue { color: #2b6cb0; } .val-green { color: #276749; } .val-red { color: #c53030; } .val-orange { color: #dd6b20; }
-
-  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 11px 14px; font-size: 13px; font-weight: 700; border: none; border-radius: 9px; cursor: pointer; color: #fff; text-decoration: none; margin-bottom: 6px; }
-  .btn:hover { opacity: 0.88; }
-  .btn-sm { padding: 7px 10px; font-size: 11px; border-radius: 7px; width: auto; }
-  .btn-success { background: #276749; } .btn-primary { background: #2c5282; } .btn-danger { background: #c53030; } .btn-warning { background: #dd6b20; } .btn-info { background: #3182ce; } .btn-outline { background: transparent; border: 1.5px solid #cbd5e0; color: #4a5568; }
-
-  .collapsible { background: #fff; border-radius: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); margin-bottom: 12px; overflow: hidden; }
-  .coll-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; cursor: pointer; }
-  .coll-header .coll-title { font-weight: 700; font-size: 14px; color: #2d3748; }
-  .coll-header .coll-arrow { font-size: 12px; font-weight: 900; color: #4a5568; transition: transform 0.2s; }
-  .coll-header.open .coll-arrow { transform: rotate(90deg); }
-  .coll-body { display: none; padding: 0 16px 16px; border-top: 1px solid #edf2f7; padding-top: 14px; }
-  .coll-body.open { display: block; }
-
-  .tenant-card { background: #fff; border: 1px solid #edf2f7; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
-  .tenant-card.expired { border-color: #fed7d7; background: #fffafa; }
-  .tenant-card.suspended { border-color: #fed7d7; background: #fff5f5; opacity: 0.85; }
-  .tenant-header { display: flex; justify-content: space-between; border-bottom: 1px dashed #edf2f7; padding-bottom: 10px; margin-bottom: 10px; gap: 8px; }
-  .tenant-title { font-size: 15px; font-weight: 800; color: #2c5282; }
-  .tenant-website { font-size: 11px; color: #3182ce; text-decoration: none; word-break: break-all; }
-  .tenant-emails { display: grid; gap: 5px; margin-bottom: 10px; background: #f7fafc; padding: 10px; border-radius: 8px; }
-  .tenant-email-item { font-size: 11px; color: #4a5568; display: flex; gap: 6px; word-break: break-all; }
-  .tenant-email-item strong { color: #2d3748; min-width: 75px; }
-  .tenant-info { font-size: 12px; margin-bottom: 5px; color: #4a5568; }
-  .tenant-info strong { color: #2d3748; }
-  .badge-status { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 800; margin-top: 6px; }
-  .status-active { background: #c6f6d5; color: #22543d; }
-  .status-expired { background: #feebc8; color: #7b341e; }
-  .status-suspended { background: #fed7d7; color: #822727; }
-  .tenant-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
-  .tenant-actions .btn { margin-bottom: 0; }
-  .tenant-actions .btn-full { grid-column: span 2; }
-
-  .empty { text-align: center; padding: 30px 16px; color: #a0aec0; }
-  .empty .emoji { font-size: 36px; margin-bottom: 8px; }
-  .empty p { font-size: 13px; }
-  .alert-banner { display: none; background: #fff5f5; color: #c53030; padding: 14px; border-radius: 12px; border: 1px solid #fed7d7; margin-bottom: 16px; font-weight: 700; font-size: 13px; text-align: center; }
-
-  #toastContainer { position: fixed; top: 16px; right: 16px; z-index: 3000; display: flex; flex-direction: column; gap: 8px; }
-  .toast { background: #2d3748; color: #fff; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,0.2); min-width: 220px; max-width: 340px; animation: slideIn 0.25s ease; }
-  .toast.success { background: #276749; } .toast.error { background: #c53030; } .toast.info { background: #2c5282; }
-  @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-  #modalOverlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2500; align-items: center; justify-content: center; padding: 20px; }
-  #modalOverlay.show { display: flex; }
-  .modal-box { background: #fff; border-radius: 16px; padding: 24px; max-width: 400px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-  .modal-box h3 { font-size: 17px; font-weight: 800; margin-bottom: 10px; color: #1a365d; }
-  .modal-box p { font-size: 14px; color: #4a5568; margin-bottom: 18px; line-height: 1.5; }
-  .modal-actions { display: flex; gap: 8px; }
-
-  #bottomNav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #e2e8f0; z-index: 100; box-shadow: 0 -2px 12px rgba(0,0,0,0.06); }
-  .bn-inner { display: flex; justify-content: space-around; padding: 6px 0; }
-  .bn-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px; cursor: pointer; color: #718096; font-size: 10px; font-weight: 700; position: relative; }
-  .bn-item .icon { font-size: 18px; }
-  .bn-item.active { color: #2c5282; }
-  .bn-item .badge { position: absolute; top: 2px; right: 22%; background: #c53030; color: #fff; padding: 0px 5px; border-radius: 8px; font-size: 9px; font-weight: 800; }
-
-  @media (min-width: 768px) {
-    #sidebar { transform: translateX(0); }
-    #main { margin-left: 250px; padding: 24px 32px 32px; }
-    .hamburger { display: none; }
-    #bottomNav { display: none !important; }
-    .stats-grid { grid-template-columns: repeat(4, 1fr); }
-    .tenant-actions { grid-template-columns: repeat(3, 1fr); }
-    .tenant-actions .btn-full { grid-column: span 1; }
+  :root { 
+    --primary: #1a365d; 
+    --primary-light: #2c5282;
+    --accent: #d4af37; 
+    --bg: #f1f5f9; 
+    --card: #ffffff; 
+    --text: #1e293b; 
+    --muted: #64748b; 
+    --border: #e2e8f0; 
+    --danger: #ef4444; 
+    --success: #10b981;
+    --warning: #f59e0b;
+    --info: #3b82f6;
   }
-    /* ✅ በስልክ ላይ Topbar እንዲስተካከል */
-  @media (max-width: 767px) {
-    #bottomNav { display: block; }
-    .hamburger { display: block; }
-    
-    .topbar { 
-      gap: 5px; 
-      flex-wrap: nowrap; 
-      justify-content: space-between;
-      align-items: center;
-    }
-    .user-chip { 
-      display: none; /* በስልክ ላይ ስሙን ደብቀን ቁልፉ ብቻ እንዲታይ */
-    }
-    .topbar h2 { 
-      font-size: 15px; 
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    /* ✅ የ Logout ቁልፍ ስታይል */
-    .logout-btn-top {
-      display: inline-block !important; 
-    }
+  body.dark-mode {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --border: #334155;
+  }
+  * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); }
+  
+  #loginScreen { 
+    position: fixed; inset: 0; 
+    background: linear-gradient(135deg, #0f172a, #1a365d); 
+    display: flex; align-items: center; justify-content: center; 
+    z-index: 1000; padding: 20px;
+  }
+  .login-box { 
+    background: var(--card); padding: 40px 30px; border-radius: 16px; 
+    width: 100%; max-width: 400px; 
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    border-top: 4px solid var(--accent);
+  }
+  .login-box h1 { text-align: center; color: var(--primary); margin-bottom: 24px; font-size: 24px; }
+  body.dark-mode .login-box h1 { color: var(--accent); }
+  
+  input, select, textarea { 
+    width: 100%; padding: 11px 12px; 
+    border: 1.5px solid var(--border); border-radius: 8px; 
+    margin-bottom: 14px; font-size: 14px; 
+    outline: none; font-family: inherit;
+    background: var(--bg);
+    color: var(--text);
+  }
+  input:focus, select:focus, textarea:focus { 
+    border-color: var(--primary); 
+    background: var(--card);
+    box-shadow: 0 0 0 3px rgba(26,54,93,0.1);
   }
   
-  /* በኮምፒውተር ላይ ቁልፉ እንዲታይ */
-  .logout-btn-top {
-    display: none; /* በመጀመሪያ ደብቀነው በስልክ ላይ ብቻ እናሳየው ወይም ሁለቱንም እናሳይ */
-    width: auto; 
-    padding: 6px 12px; 
-    border-radius: 20px; 
-    margin-bottom: 0; 
-    font-size: 12px; 
-    white-space: nowrap;
+  button { 
+    width: 100%; padding: 12px; border: none; border-radius: 8px; 
+    background: var(--primary); color: white; 
+    font-weight: bold; cursor: pointer; font-size: 14px;
+    transition: all 0.2s;
+  }
+  button:hover { opacity: 0.92; }
+
+  #app { display: none; min-height: 100vh; flex-direction: column; }
+
+  .top-header {
+    position: sticky; top: 0; z-index: 100;
+    background: #1a365d; color: #fff;
+    padding: 12px 18px;
+    display: flex; justify-content: space-between; align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  }
+  .hdr-left { display: flex; align-items: center; gap: 10px; }
+  .hdr-avatar {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--accent); color: #1a365d;
+    font-weight: 800; display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .hdr-title { font-size: 15px; font-weight: 800; }
+  .hdr-sub { font-size: 11px; opacity: 0.8; }
+  .hdr-actions { display: flex; align-items: center; gap: 8px; }
+  .icon-btn {
+    width: auto; padding: 7px 11px; border-radius: 8px;
+    background: rgba(255,255,255,0.14); color: #fff; font-size: 13px;
+  }
+  .btn-logout { width: auto; padding: 7px 14px; background: var(--danger); font-size: 12px; }
+
+  .app-body { display: flex; flex: 1; }
+
+  .sidebar {
+    display: none;
+    width: 235px; flex-shrink: 0;
+    background: var(--card);
+    border-right: 1px solid var(--border);
+    padding: 14px 10px;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 14px; border-radius: 10px;
+    cursor: pointer; font-size: 14px; font-weight: 600;
+    color: var(--text); margin-bottom: 6px;
+    transition: all 0.15s;
+  }
+  .nav-item:hover { background: var(--bg); }
+  .nav-item.active { background: #1a365d; color: #fff; }
+  .nav-badge {
+    margin-left: auto; background: var(--danger); color: #fff;
+    font-size: 11px; padding: 2px 7px; border-radius: 10px; font-weight: 700;
+  }
+
+  .main-content {
+    flex: 1; padding: 14px;
+    padding-bottom: 84px;
+    max-width: 100%;
+  }
+  .admin-panel { display: none; }
+  .admin-panel.active { display: block; }
+
+  .mobile-bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    background: var(--card); border-top: 1px solid var(--border);
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    padding: 6px 4px;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.06);
+  }
+  .mobile-nav-btn {
+    background: transparent; color: var(--muted);
+    padding: 6px 2px; border-radius: 8px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    font-size: 10.5px; font-weight: 700;
+  }
+  .mobile-nav-btn .ico { font-size: 17px; }
+  .mobile-nav-btn.active { color: var(--primary); background: rgba(26,54,93,0.08); }
+  body.dark-mode .mobile-nav-btn.active { color: var(--accent); background: rgba(212,175,55,0.12); }
+
+  .card { 
+    background: var(--card); border-radius: 12px; 
+    padding: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); 
+    margin-bottom: 16px; border: 1px solid var(--border); 
+  }
+  .card h2 { 
+    font-size: 15px; margin-bottom: 16px; color: var(--primary); 
+    border-bottom: 2px solid var(--accent); 
+    padding-bottom: 6px; display: inline-block; 
+  }
+  body.dark-mode .card h2 { color: var(--accent); }
+
+  .form-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  label { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 4px; display: block; }
+
+  .stats-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); 
+    gap: 12px; margin-bottom: 16px;
+  }
+  .stat-card {
+    background: var(--card); border: 1px solid var(--border); 
+    border-radius: 12px; padding: 16px; text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  }
+  .stat-card .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
+  .stat-card .stat-value { font-size: 22px; font-weight: 800; color: var(--primary); }
+  body.dark-mode .stat-card .stat-value { color: #f8fafc; }
+
+  .cards-list-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  .tenant-item { 
+    border: 1px solid var(--border); border-radius: 12px; 
+    padding: 15px; background: var(--bg);
+    transition: all 0.2s; display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .tenant-item:hover { border-color: var(--primary); box-shadow: 0 4px 12px rgba(26,54,93,0.08); }
+  .tenant-item h3 { font-size: 15px; color: var(--primary); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  body.dark-mode .tenant-item h3 { color: #f8fafc; }
+  .tenant-item p { font-size: 12px; color: var(--muted); margin-bottom: 10px; line-height: 1.5; }
+
+  .proof-thumb {
+    width: 100%; max-height: 180px; object-fit: cover;
+    border-radius: 8px; border: 1px solid var(--border);
+    margin: 8px 0; cursor: pointer;
+  }
+  
+  .badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; color: white; }
+  .bg-success { background: var(--success); }
+  .bg-danger { background: var(--danger); }
+  .bg-warning { background: var(--warning); }
+  .bg-info { background: var(--info); }
+  .bg-dark { background: #334155; }
+  
+  .action-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .action-btns button { width: auto; padding: 6px 11px; font-size: 11.5px; margin: 0; }
+
+  .filters { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 16px; }
+
+  #createStatus, #supportStatus, #billingStatus, #pricingStatus { 
+    text-align: center; margin-top: 12px; font-size: 13px; font-weight: bold; 
+    padding: 10px; border-radius: 8px; display: none;
+  }
+  #createStatus.show, #supportStatus.show, #billingStatus.show, #pricingStatus.show { display: block; }
+  .status-success { background: rgba(16,185,129,0.12); color: var(--success); }
+  .status-error { background: rgba(239,68,68,0.12); color: var(--danger); }
+  .status-loading { background: rgba(245,158,11,0.12); color: var(--warning); }
+
+  .empty-state { text-align: center; padding: 36px 20px; color: var(--muted); grid-column: 1 / -1; }
+  .empty-state .emoji { font-size: 42px; margin-bottom: 10px; }
+
+  @media (min-width: 768px) {
+    .sidebar { display: block; }
+    .mobile-bottom-nav { display: none; }
+    .main-content { padding: 22px; padding-bottom: 24px; }
+    .stats-grid { grid-template-columns: repeat(5, 1fr); }
+    .form-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+    .form-grid-3 { grid-template-columns: repeat(3, 1fr); gap: 15px; }
+    .form-grid-4 { grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .filters { grid-template-columns: 2fr 1fr 1fr 1fr; }
+    .cards-list-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  }
+
+  @media (min-width: 1200px) {
+    .cards-list-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   }
 </style>
 </head>
@@ -165,722 +230,1140 @@
 <!-- LOGIN -->
 <div id="loginScreen">
   <div class="login-box">
-    <h1>👑 Super Admin Panel</h1>
-    <div id="loginError"></div>
-    <div class="form-group">
-      <label>📧 Admin Email</label>
-      <input type="email" id="loginEmail" placeholder="admin@hanitech.com">
-    </div>
-    <div class="form-group">
-      <label>🔒 Password</label>
-      <input type="password" id="loginPassword" placeholder="••••••••">
-    </div>
-    <button class="btn-login" onclick="adminLogin()">🔓 ግባ</button>
+    <h1>👑 Super Admin</h1>
+    <div id="error" style="color:red; font-size:13px; margin-bottom:10px; text-align:center; min-height:20px;"></div>
+    <input type="email" id="email" placeholder="admin@hanitech.com">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">🔓 Sign In</button>
   </div>
 </div>
 
-<!-- APP -->
+<!-- MAIN APP -->
 <div id="app">
-
-  <aside id="sidebar">
-    <div class="sb-brand">
-      <h1>👑 HaniTech Credit</h1>
-      <small>Super Admin Panel</small>
+  <div class="top-header">
+    <div class="hdr-left">
+      <div class="hdr-avatar">👑</div>
+      <div>
+        <div class="hdr-title">HaniTech Super Admin</div>
+        <div class="hdr-sub" id="adminEmailLabel">admin@hanitech.com</div>
+      </div>
     </div>
-    <nav class="sb-nav">
-      <div class="sb-item active" data-section="dashboard" onclick="switchSection('dashboard')">
-        <span class="icon">📊</span><span>Dashboard</span>
-      </div>
-      <div class="sb-item" data-section="shops" onclick="switchSection('shops')">
-        <span class="icon">🏢</span><span>Shops</span>
-      </div>
-      <div class="sb-item" data-section="users" onclick="switchSection('users')">
-        <span class="icon">👥</span><span>Users</span>
-      </div>
-      <div class="sb-item" data-section="billing" onclick="switchSection('billing')">
-        <span class="icon">💰</span><span>Billing</span>
-      </div>
-      <div class="sb-item" data-section="passwords" onclick="switchSection('passwords')">
-        <span class="icon">🔔</span><span>Password Requests</span>
-        <span class="badge" id="sbPassBadge" style="display:none;">0</span>
-      </div>
-      <div class="sb-item" data-section="support" onclick="switchSection('support')">
-        <span class="icon">📞</span><span>Support Info</span>
-      </div>
-      <div class="sb-item" data-section="data" onclick="switchSection('data')">
-        <span class="icon">💾</span><span>Data Management</span>
-      </div>
-    </nav>
-    <div class="sb-footer">
-      <button class="btn-logout" onclick="adminLogout()">🚪 Logout</button>
+    <div class="hdr-actions">
+      <button class="icon-btn" onclick="toggleAdminTheme()" title="Theme">🌓</button>
+      <button class="btn-logout" onclick="logout()">🚪 Logout</button>
     </div>
-  </aside>
-  <div class="sb-overlay" id="sbOverlay" onclick="toggleSidebar()"></div>
+  </div>
 
-    <main id="main">
-    <div class="topbar">
-      <!-- የግራ በኩል (Hamburger እና ርዕስ) -->
-      <div style="display:flex; align-items:center; gap:10px; overflow: hidden;">
-        <button class="hamburger" onclick="toggleSidebar()">☰</button>
-        <h2 id="pageTitle" style="margin: 0;">📊 Dashboard</h2>
+  <div class="app-body">
+    <aside class="sidebar">
+      <div class="nav-item active" data-panel="panelDashboard" onclick="switchAdminTab('panelDashboard')">
+        <span>📊</span><span>Dashboard</span>
       </div>
-      
-      <!-- ✅ የቀኝ በኩል (ስም እና የ Logout ቁልፍ) -->
-      <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-        <div class="user-chip" id="userChip">admin</div>
-        
-        <!-- አዲሱ የ Logout ቁልፍ -->
-        <button onclick="adminLogout()" class="btn btn-danger btn-sm logout-btn-top">
-          🚪 Logout
-        </button>
+      <div class="nav-item" data-panel="panelTenants" onclick="switchAdminTab('panelTenants')">
+        <span>🏢</span><span>Subscriptions</span>
       </div>
-    </div>>
+      <div class="nav-item" data-panel="panelBilling" onclick="switchAdminTab('panelBilling')">
+        <span>💳</span><span>Bill Payments</span>
+        <span class="nav-badge" id="payReqBadgeSide" style="display:none; background:var(--info);">0</span>
+      </div>
+      <div class="nav-item" data-panel="panelPricing" onclick="switchAdminTab('panelPricing')">
+        <span>💰</span><span>Pricing Plans</span>
+      </div>
+      <div class="nav-item" data-panel="panelCreate" onclick="switchAdminTab('panelCreate')">
+        <span>➕</span><span>Create Shop</span>
+      </div>
+      <div class="nav-item" data-panel="panelRequests" onclick="switchAdminTab('panelRequests')">
+        <span>🔑</span><span>Reset Requests</span>
+        <span class="nav-badge" id="reqBadgeSide" style="display:none;">0</span>
+      </div>
+      <div class="nav-item" data-panel="panelSupport" onclick="switchAdminTab('panelSupport')">
+        <span>🛟</span><span>Support Info</span>
+      </div>
+    </aside>
 
-    <!-- DASHBOARD -->
-    <section class="section active" id="section-dashboard">
-      <div class="alert-banner" id="paymentBanner">⚠️ <span id="paymentBannerText"></span></div>
-      <div class="stats-grid">
-        <div class="stat-card"><div class="value val-blue" id="statTotalTenants">0</div><div class="label">📊 ሱቆች</div></div>
-        <div class="stat-card"><div class="value val-green" id="statActive">0</div><div class="label">✅ ንቁ</div></div>
-        <div class="stat-card"><div class="value val-orange" id="statExpired">0</div><div class="label">⏳ ጊዜው አልፏል</div></div>
-        <div class="stat-card"><div class="value val-red" id="statSuspended">0</div><div class="label">❌ የታገዱ</div></div>
-      </div>
-      <div class="stats-grid" style="grid-template-columns:1fr 1fr;">
-        <div class="stat-card"><div class="value val-green" id="statPaid">0.00</div><div class="label">💰 የተከፈለ</div></div>
-        <div class="stat-card"><div class="value val-orange" id="statUnpaid">0.00</div><div class="label">⏳ ያልተከፈለ</div></div>
-      </div>
-      <div class="card">
-        <div class="card-title">🆕 አዳዲስ ሱቆች</div>
-        <div id="recentShops"></div>
-      </div>
-    </section>
-
-    <!-- SHOPS -->
-    <section class="section" id="section-shops">
-      <div class="collapsible">
-        <div class="coll-header" onclick="toggleColl(this)">
-          <div class="coll-title">➕ አዲስ ሱቅ ጨምር</div>
-          <span class="coll-arrow">▶</span>
+    <main class="main-content">
+      <!-- 1. DASHBOARD -->
+      <section class="admin-panel active" id="panelDashboard">
+        <div class="stats-grid" id="statsGrid"></div>
+        <div class="card">
+          <h2>⚡ Quick Actions</h2>
+          <div class="form-grid">
+            <button onclick="switchAdminTab('panelCreate')" style="background:var(--success);">➕ አዲስ ሱቅ ፍጠር</button>
+            <button onclick="switchAdminTab('panelBilling')" style="background:var(--info);">💳 Bill Payment መዝግብ</button>
+            <button onclick="switchAdminTab('panelPricing')" style="background:var(--primary);">💰 Basic & Pro ዋጋዎች</button>
+            <button onclick="switchAdminTab('panelTenants')" style="background:var(--warning);">🏢 Subscriptions እይ</button>
+          </div>
         </div>
-        <div class="coll-body">
-          <div class="form-group"><label>የሱቅ ስም</label><input type="text" id="newName" placeholder="Abebe Shop"></div>
-          <div class="form-group"><label>ስልክ ቁጥር</label><input type="tel" id="newPhone" placeholder="0911223344"></div>
-          <div class="form-group"><label>ጊዜያዊ ፓስወርድ</label><input type="text" id="newTempPass" value="123456"></div>
-          <div class="form-group"><label>📅 የሙከራ ቀናት (Trial Days)</label><input type="number" id="newTrialDays" value="7" min="1"></div>
-          <div class="form-group"><label>💰 ወርሃዊ ክፍያ (ብር)</label><input type="number" id="newAmount" placeholder="0"></div>
-          <button class="btn btn-primary" onclick="addTenant()">💾 ፍጠር</button>
+      </section>
+
+      <!-- 2. TENANTS / SHOPS & SUBSCRIPTIONS -->
+      <section class="admin-panel" id="panelTenants">
+        <div class="card">
+          <h2>📋 የተፈጠሩ ሱቆች & Subscriptions</h2>
+          <div class="filters">
+            <input type="text" id="searchTenant" placeholder="🔍 Search shop or phone..." oninput="loadTenants()" style="margin-bottom:0;">
+            <select id="filterSubStatus" onchange="loadTenants()" style="margin-bottom:0;">
+              <option value="all">All Statuses</option>
+              <option value="active">✅ Active</option>
+              <option value="expiring">⏳ Expiring (≤7d)</option>
+              <option value="expired">🚨 Expired</option>
+              <option value="suspended">⏸️ Suspended</option>
+            </select>
+            <select id="filterPlan" onchange="loadTenants()" style="margin-bottom:0;">
+              <option value="all">All Plans</option>
+              <option value="basic">Basic Only</option>
+              <option value="pro">Pro Only</option>
+            </select>
+            <select id="filterBizType" onchange="loadTenants()" style="margin-bottom:0;">
+              <option value="all">All Types</option>
+              <option value="credit">💳 Credit Shop</option>
+              <option value="retail">🏪 Retail</option>
+              <option value="wholesale">📦 Wholesale</option>
+            </select>
+          </div>
+          <div id="tenantList" class="cards-list-grid"></div>
         </div>
-      </div>
+      </section>
 
-      <div class="card">
-        <div style="display:flex; gap:8px; margin-bottom:12px; flex-direction:column;">
-          <input type="text" id="searchTenant" placeholder="🔍 ፈልግ..." oninput="renderTenantList()">
-          <select id="filterStatus" onchange="renderTenantList()">
-            <option value="all">ሁሉም ሁኔታ</option>
-            <option value="active">✅ ንቁ / Trial</option>
-            <option value="expired">⏳ ጊዜው አልፏል</option>
-            <option value="suspended">❌ የታገዱ</option>
-          </select>
+      <!-- 3. BILL PAYMENTS & USER PAYMENT REQUESTS -->
+      <section class="admin-panel" id="panelBilling">
+        <div class="card">
+          <h2>💳 Record Bill Payment & Extend Subscription</h2>
+          <div class="form-grid form-grid-3">
+            <div>
+              <label>Shop / Tenant *</label>
+              <select id="payTenantSelect" onchange="autoFillAdminRenewFromTenant()"></select>
+            </div>
+            <div>
+              <label>Billing Cycle</label>
+              <select id="payCycleSelect" onchange="autoFillAdminRenewFromTenant()">
+                <option value="monthly">Monthly (30 days)</option>
+                <option value="quarterly">Quarterly (90 days)</option>
+                <option value="semiannual">Semi-Annual (180 days)</option>
+                <option value="annual">Annual (365 days)</option>
+              </select>
+            </div>
+            <div>
+              <label>Amount (ETB) *</label>
+              <input type="number" id="payAmount" min="0" step="0.01" placeholder="e.g. 500">
+            </div>
+            <div>
+              <label>Payment Method *</label>
+              <select id="payMethod">
+                <option value="Telebirr">📱 Telebirr</option>
+                <option value="CBE">🏦 CBE</option>
+                <option value="Bank Transfer">🏛️ Bank Transfer</option>
+                <option value="Cash">💵 Cash</option>
+              </select>
+            </div>
+            <div>
+              <label>New Expiry Date *</label>
+              <input type="date" id="payNewExpiry">
+            </div>
+            <div>
+              <label>Reference / Note</label>
+              <input type="text" id="payNote" placeholder="TXN ID or note...">
+            </div>
+          </div>
+          <button onclick="submitBillPayment()" style="background:var(--success);">💾 Save Payment & Renew</button>
+          <div id="billingStatus"></div>
         </div>
-        <div id="tenantList"></div>
-      </div>
-    </section>
 
-    <!-- USERS -->
-    <section class="section" id="section-users">
-      <div class="card">
-        <div class="card-title">👥 የተጠቃሚዎች ዝርዝር</div>
-        <div style="display:flex; gap:8px; margin-bottom:12px; flex-direction:column;">
-          <input type="text" id="searchUser" placeholder="🔍 በኢሜይል ፈልግ..." oninput="renderUserList()">
+        <div class="card">
+          <h2>📩 Shop Payment / Renewal Requests (with Screenshot)</h2>
+          <div id="tenantPaymentRequestsList" class="cards-list-grid">
+            <p style="color:var(--muted); font-size:13px; text-align:center; padding:20px;">በመጫን ላይ...</p>
+          </div>
         </div>
-        <div id="userList"></div>
-      </div>
-    </section>
 
-    <!-- BILLING -->
-    <section class="section" id="section-billing">
-      <div class="card">
-        <div class="card-title">💰 የክፍያ ማጠቃለያ</div>
-        <div id="billingSummary"></div>
-      </div>
-      <div class="card">
-        <div class="card-title">📜 የክፍያ ታሪክ</div>
-        <div id="billingHistory"></div>
-      </div>
-    </section>
+        <div class="card">
+          <h2>🧾 Payment History (የተከፈሉ ክፍያዎች ታሪክ)</h2>
+          <div id="billingHistoryList" class="cards-list-grid">
+            <p style="color:var(--muted); font-size:13px; text-align:center; padding:20px;">በመጫን ላይ...</p>
+          </div>
+        </div>
+      </section>
 
-    <!-- PASSWORDS -->
-    <section class="section" id="section-passwords">
-      <div class="card">
-        <div class="card-title">🔔 የፓስወርድ ጥያቄዎች</div>
-        <div id="passwordRequestsList"></div>
-      </div>
-    </section>
+      <!-- 4. PRICING PLANS (BASIC & PRO SEPARATE) -->
+      <section class="admin-panel" id="panelPricing">
+        <div class="card">
+          <h2>🟢 Basic Plan Pricing (ETB)</h2>
+          <div class="form-grid form-grid-4">
+            <div><label>Monthly (30d)</label><input type="number" id="basicMonthly" min="0" step="0.01" value="500"></div>
+            <div><label>Quarterly (90d)</label><input type="number" id="basicQuarterly" min="0" step="0.01" value="1400"></div>
+            <div><label>Semi-Annual (180d)</label><input type="number" id="basicSemiannual" min="0" step="0.01" value="2700"></div>
+            <div><label>Annual (365d)</label><input type="number" id="basicAnnual" min="0" step="0.01" value="5000"></div>
+          </div>
 
-    <!-- SUPPORT -->
-    <section class="section" id="section-support">
-      <div class="card">
-        <div class="card-title">📞 የድጋፍ መረጃ</div>
-        <div class="form-group"><label>ስልክ</label><input type="text" id="supportPhone" placeholder="+251 9XX XXX XXX"></div>
-        <div class="form-group"><label>ኢሜይል</label><input type="email" id="supportEmail" placeholder="support@hanitech.com"></div>
-        <div class="form-group"><label>ቴሌግራም</label><input type="text" id="supportTelegram" placeholder="@hanitech_support"></div>
-        <button class="btn btn-primary" onclick="saveSupportInfo()">💾 አስቀምጥ</button>
-      </div>
-    </section>
+          <h2 style="margin-top:10px;">🔵 Pro Plan Pricing (ETB)</h2>
+          <div class="form-grid form-grid-4">
+            <div><label>Monthly (30d)</label><input type="number" id="proMonthly" min="0" step="0.01" value="1000"></div>
+            <div><label>Quarterly (90d)</label><input type="number" id="proQuarterly" min="0" step="0.01" value="2800"></div>
+            <div><label>Semi-Annual (180d)</label><input type="number" id="proSemiannual" min="0" step="0.01" value="5400"></div>
+            <div><label>Annual (365d)</label><input type="number" id="proAnnual" min="0" step="0.01" value="10000"></div>
+          </div>
 
-    <!-- DATA -->
-    <section class="section" id="section-data">
-      <div class="card">
-        <div class="card-title">💾 ዳታ አስተዳደር</div>
-        <button class="btn btn-success" onclick="exportCSV()">📊 Excel (CSV) አውጣ</button>
-        <button class="btn btn-info" onclick="exportBackup()">📥 ሙሉ ባክአፕ (JSON)</button>
-      </div>
-    </section>
+          <button onclick="savePricingConfig()" style="background:var(--primary);">💾 Save Basic & Pro Prices</button>
+          <div id="pricingStatus"></div>
+        </div>
+      </section>
 
-  </main>
+      <!-- 5. CREATE SHOP / TENANT -->
+      <section class="admin-panel" id="panelCreate">
+        <div class="card">
+          <h2>➕ አዲስ ሱቅ ፍጠር (Shop + የክፍያ ጊዜ & ማብቂያ ቀን)</h2>
+          <div class="form-grid">
+            <div>
+              <label>የሱቅ ስም *</label>
+              <input type="text" id="newName" placeholder="e.g. Abebe Shop">
+            </div>
+            <div>
+              <label>ስልክ ቁጥር *</label>
+              <input type="tel" id="newPhone" placeholder="0911223344">
+            </div>
+            <div>
+              <label>ዘርፍ (Business Type)</label>
+              <select id="newBizType">
+                <option value="credit">💳 Credit Shop</option>
+                <option value="retail">🏪 Retail</option>
+                <option value="wholesale">📦 Wholesale</option>
+              </select>
+            </div>
+            <div>
+              <label>ፕላን (Plan)</label>
+              <select id="newPlan" onchange="syncCreateTenantPricing()">
+                <option value="basic">🟢 Basic</option>
+                <option value="pro">🔵 Pro</option>
+              </select>
+            </div>
+            <div>
+              <label>የክፍያ ጊዜ (Billing Cycle)</label>
+              <select id="newBillingCycle" onchange="syncCreateTenantPricing()">
+                <option value="monthly">Monthly (30 days)</option>
+                <option value="quarterly">Quarterly (90 days)</option>
+                <option value="semiannual">Semi-Annual (180 days)</option>
+                <option value="annual">Annual (365 days)</option>
+              </select>
+            </div>
+            <div>
+              <label>💰 የተከፈለ መጠን (Amount ETB)</label>
+              <input type="number" id="newInitAmount" min="0" step="0.01" value="500">
+            </div>
+            <div>
+              <label>ማብቂያ ቀን (Expiry Date) *</label>
+              <input type="date" id="newExpiry">
+            </div>
+            <div>
+              <label>💳 የክፍያ ዘዴ (Payment Method)</label>
+              <select id="newPayMethod">
+                <option value="Telebirr">📱 Telebirr</option>
+                <option value="CBE">🏦 CBE</option>
+                <option value="Bank Transfer">🏛️ Bank Transfer</option>
+                <option value="Cash">💵 Cash</option>
+              </select>
+            </div>
+            <div>
+              <label>📝 የክፍያ / ምዝገባ ማስታወሻ (Note)</label>
+              <input type="text" id="newPayNote" placeholder="e.g. Initial subscription">
+            </div>
+          </div>
 
-  <nav id="bottomNav">
-    <div class="bn-inner">
-      <div class="bn-item active" data-section="dashboard" onclick="switchSection('dashboard')"><span class="icon">📊</span><span>Dash</span></div>
-      <div class="bn-item" data-section="shops" onclick="switchSection('shops')"><span class="icon">🏢</span><span>Shops</span></div>
-      <div class="bn-item" data-section="users" onclick="switchSection('users')"><span class="icon">👥</span><span>Users</span></div>
-      <div class="bn-item" data-section="billing" onclick="switchSection('billing')"><span class="icon">💰</span><span>Bill</span></div>
-      <div class="bn-item" data-section="more" onclick="openMoreMenu()"><span class="icon">☰</span><span>More</span></div>
-    </div>
+          <hr style="margin: 12px 0 16px 0; border: 0; border-top: 1px dashed var(--border);">
+
+          <div class="form-grid">
+            <div>
+              <label>Owner Email (ባዶ ከሆነ ስልክ@creditapp.com ይሆናል)</label>
+              <input type="email" id="newOwnerEmail" placeholder="optional@shop.com">
+            </div>
+            <div>
+              <label>Temp Password *</label>
+              <input type="text" id="newPassword" value="123456">
+            </div>
+          </div>
+
+          <button onclick="createTenant()" style="background: var(--success);">✨ Create Shop & Record Payment</button>
+          <div id="createStatus"></div>
+        </div>
+      </section>
+
+      <!-- 6. PASSWORD REQUESTS -->
+      <section class="admin-panel" id="panelRequests">
+        <div class="card">
+          <h2>🔑 Password Reset Requests</h2>
+          <div id="passwordRequestsList" class="cards-list-grid">
+            <p style="color:var(--muted); font-size:13px; text-align:center; padding:20px;">በመጫን ላይ...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. SUPPORT INFO -->
+      <section class="admin-panel" id="panelSupport">
+        <div class="card">
+          <h2>🛟 Support Info (ለሁሉም ተጠቃሚዎች)</h2>
+          <div class="form-grid form-grid-3">
+            <div>
+              <label>📞 Admin Phone</label>
+              <input type="text" id="supPhone" placeholder="+251 9...">
+            </div>
+            <div>
+              <label>✈️ Telegram Username</label>
+              <input type="text" id="supTelegram" placeholder="@hanitech_support">
+            </div>
+            <div>
+              <label>📧 Support Email</label>
+              <input type="email" id="supEmail" placeholder="support@hanitech.com">
+            </div>
+          </div>
+          <button onclick="saveSupportInfo()" style="background: var(--primary);">💾 Save Support Info</button>
+          <div id="supportStatus"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <nav class="mobile-bottom-nav">
+    <button class="mobile-nav-btn active" data-panel="panelDashboard" onclick="switchAdminTab('panelDashboard')">
+      <span class="ico">📊</span><span>Home</span>
+    </button>
+    <button class="mobile-nav-btn" data-panel="panelTenants" onclick="switchAdminTab('panelTenants')">
+      <span class="ico">🏢</span><span>Subs</span>
+    </button>
+    <button class="mobile-nav-btn" data-panel="panelBilling" onclick="switchAdminTab('panelBilling')">
+      <span class="ico">💳</span><span>Billing</span>
+    </button>
+    <button class="mobile-nav-btn" data-panel="panelPricing" onclick="switchAdminTab('panelPricing')">
+      <span class="ico">💰</span><span>Prices</span>
+    </button>
+    <button class="mobile-nav-btn" data-panel="panelCreate" onclick="switchAdminTab('panelCreate')">
+      <span class="ico">➕</span><span>Create</span>
+    </button>
   </nav>
-
 </div>
 
-<div id="toastContainer"></div>
-<div id="modalOverlay">
-  <div class="modal-box">
-    <h3 id="modalTitle">Title</h3>
-    <p id="modalMessage">Message</p>
-    <div class="modal-actions" id="modalActions"></div>
+<!-- IMAGE PREVIEW MODAL -->
+<div id="proofPreviewModal" onclick="closeProofModal()" style="display:none; position:fixed; inset:0; z-index:2000; background:rgba(0,0,0,0.88); align-items:center; justify-content:center; padding:16px;">
+  <div onclick="event.stopPropagation()" style="position:relative; max-width:95vw; max-height:90vh; background:#0f172a; padding:12px; border-radius:12px; border:1px solid #334155;">
+    <button type="button" onclick="closeProofModal()" style="width:auto; padding:6px 12px; background:#ef4444; color:#fff; border-radius:8px; font-size:12px; margin-bottom:10px; float:right;">✕ ዝጋ</button>
+    <img id="proofModalImg" src="" alt="Full Payment Proof" style="display:block; clear:both; max-width:100%; max-height:78vh; border-radius:8px; object-fit:contain;">
   </div>
 </div>
+
 <script type="module">
-  import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
-  import { getFirestore, collection, addDoc, getDocs, query, doc, updateDoc, getDoc, setDoc, deleteDoc, where } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
+import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
+import { 
+  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, 
+  createUserWithEmailAndPassword, sendPasswordResetEmail 
+} from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
+import { 
+  getFirestore, collection, addDoc, getDocs, query, where, 
+  doc, setDoc, serverTimestamp, getDoc, updateDoc, deleteDoc 
+} from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 
-  // ⚠️ የእርስዎ Firebase Config
-  const firebaseConfig = {
-    apiKey: "AIzaSyC3h__9_0HMC0ebr8sFV5_v1fqholtBVFg",
-    authDomain: "anitech-credit-app.firebaseapp.com",
-    projectId: "anitech-credit-app",
-    storageBucket: "anitech-credit-app.firebasestorage.app",
-    messagingSenderId: "860089315804",
-    appId: "1:860089315804:web:63955eea7b3c840990df19",
+const firebaseConfig = {
+  apiKey: "AIzaSyC3h__9_0HMC0ebr8sFV5_v1fqholtBVFg",
+  authDomain: "anitech-credit-app.firebaseapp.com",
+  projectId: "anitech-credit-app",
+  storageBucket: "anitech-credit-app.firebasestorage.app",
+  messagingSenderId: "860089315804",
+  appId: "1:860089315804:web:63955eea7b3c840990df19",
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const SUPER_ADMIN = "admin@hanitech.com";
+
+const CYCLE_DAYS = {
+  monthly: 30,
+  quarterly: 90,
+  semiannual: 180,
+  annual: 365
+};
+
+let pricingConfig = {
+  basic: { monthly: 500, quarterly: 1400, semiannual: 2700, annual: 5000 },
+  pro: { monthly: 1000, quarterly: 2800, semiannual: 5400, annual: 10000 }
+};
+
+let cachedTenants = [];
+let cachedPayments = [];
+
+function esc(s) { 
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); 
+}
+function escJs(s) { 
+  return String(s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'"); 
+}
+function money(n) {
+  return (Math.round((parseFloat(n) || 0) * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function addDaysStr(days, fromDate = new Date()) {
+  const d = new Date(fromDate);
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate() + (Number(days) || 30));
+  return d.toISOString().split('T')[0];
+}
+
+window.switchAdminTab = function(panelId) {
+  document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(panelId)?.classList.add('active');
+  document.querySelectorAll('.nav-item, .mobile-nav-btn').forEach(el => {
+    el.classList.toggle('active', el.dataset.panel === panelId);
+  });
+};
+
+window.toggleAdminTheme = function() {
+  document.body.classList.toggle('dark-mode');
+};
+
+window.openProofModal = function(src) {
+  const modal = document.getElementById('proofPreviewModal');
+  const img = document.getElementById('proofModalImg');
+  if (!modal || !img || !src) return;
+  img.src = src;
+  modal.style.display = 'flex';
+};
+
+window.closeProofModal = function() {
+  const modal = document.getElementById('proofPreviewModal');
+  const img = document.getElementById('proofModalImg');
+  if (modal) modal.style.display = 'none';
+  if (img) img.src = '';
+};
+
+window.login = async function() {
+  const email = document.getElementById('email').value.trim();
+  const pass = document.getElementById('password').value;
+  const errEl = document.getElementById('error');
+  errEl.innerText = '';
+  
+  if (!email || !pass) { errEl.innerText = '⚠️ Email እና Password ያስፈልጋሉ'; return; }
+  if (email !== SUPER_ADMIN) { errEl.innerText = '❌ እርስዎ አድሚን አይደሉም!'; return; }
+  
+  try { await signInWithEmailAndPassword(auth, email, pass); }
+  catch(e) { errEl.innerText = '❌ Email ወይም Password ስህተት'; }
+};
+
+window.logout = function() { signOut(auth); };
+
+onAuthStateChanged(auth, async (user) => {
+  if (user && user.email === SUPER_ADMIN) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    document.getElementById('adminEmailLabel').textContent = user.email;
+    await loadPricingConfig();
+    loadSupportInfo();
+    loadTenants();
+    loadBillingHistory();
+    loadTenantPaymentRequests();
+    loadPasswordRequests();
+  } else {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  }
+});
+
+// ═══════════════════════════════════════════
+// 💰 PRICING CONFIG (BASIC & PRO)
+// ═══════════════════════════════════════════
+async function loadPricingConfig() {
+  try {
+    const snap = await getDoc(doc(db, 'appSettings', 'pricing'));
+    if (snap.exists()) {
+      const d = snap.data();
+      pricingConfig = {
+        basic: { ...pricingConfig.basic, ...(d.basic || {}) },
+        pro: { ...pricingConfig.pro, ...(d.pro || {}) }
+      };
+    }
+  } catch (e) { console.error(e); }
+
+  document.getElementById('basicMonthly').value = pricingConfig.basic.monthly;
+  document.getElementById('basicQuarterly').value = pricingConfig.basic.quarterly;
+  document.getElementById('basicSemiannual').value = pricingConfig.basic.semiannual;
+  document.getElementById('basicAnnual').value = pricingConfig.basic.annual;
+
+  document.getElementById('proMonthly').value = pricingConfig.pro.monthly;
+  document.getElementById('proQuarterly').value = pricingConfig.pro.quarterly;
+  document.getElementById('proSemiannual').value = pricingConfig.pro.semiannual;
+  document.getElementById('proAnnual').value = pricingConfig.pro.annual;
+
+  syncCreateTenantPricing();
+  autoFillAdminRenewFromTenant();
+}
+
+window.savePricingConfig = async function() {
+  const status = document.getElementById('pricingStatus');
+  status.className = 'show status-loading';
+  status.innerText = '⏳ በማስቀመጥ ላይ...';
+
+  pricingConfig = {
+    basic: {
+      monthly: parseFloat(document.getElementById('basicMonthly').value) || 0,
+      quarterly: parseFloat(document.getElementById('basicQuarterly').value) || 0,
+      semiannual: parseFloat(document.getElementById('basicSemiannual').value) || 0,
+      annual: parseFloat(document.getElementById('basicAnnual').value) || 0
+    },
+    pro: {
+      monthly: parseFloat(document.getElementById('proMonthly').value) || 0,
+      quarterly: parseFloat(document.getElementById('proQuarterly').value) || 0,
+      semiannual: parseFloat(document.getElementById('proSemiannual').value) || 0,
+      annual: parseFloat(document.getElementById('proAnnual').value) || 0
+    }
   };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const SUPER_ADMIN_EMAIL = "admin@hanitech.com"; // ⚠️ የእርስዎ አስተዳዳሪ ኢሜል
+  try {
+    await setDoc(doc(db, 'appSettings', 'pricing'), {
+      ...pricingConfig,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
 
-  let allTenants = [], allUsers = [], allPasswordRequests = [];
-  let allSupportInfo = { phone: '', email: '', telegram: '' };
+    syncCreateTenantPricing();
+    autoFillAdminRenewFromTenant();
 
-  // ===== TOAST =====
-  window.toast = function(msg, type = 'info') {
-    const el = document.createElement('div');
-    el.className = 'toast ' + type;
-    el.textContent = msg;
-    document.getElementById('toastContainer').appendChild(el);
-    setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 250); }, 3000);
-  };
+    status.className = 'show status-success';
+    status.innerText = '✅ የ Basic እና Pro ዋጋዎች ተቀምጠዋል!';
+    setTimeout(() => { status.className = ''; }, 4000);
+  } catch (e) {
+    status.className = 'show status-error';
+    status.innerText = '❌ ስህተት: ' + e.message;
+  }
+};
 
-  // ===== MODAL =====
-  window.showModal = function(title, message, buttons) {
-    return new Promise((resolve) => {
-      document.getElementById('modalTitle').textContent = title;
-      document.getElementById('modalMessage').textContent = message;
-      const actions = document.getElementById('modalActions');
-      actions.innerHTML = '';
-      buttons.forEach(btn => {
-        const b = document.createElement('button');
-        b.className = 'btn ' + (btn.class || 'btn-primary');
-        b.textContent = btn.text;
-        b.onclick = () => {
-          document.getElementById('modalOverlay').classList.remove('show');
-          resolve(btn.value !== undefined ? btn.value : true);
-        };
-        actions.appendChild(b);
-      });
-      document.getElementById('modalOverlay').classList.add('show');
+window.syncCreateTenantPricing = function() {
+  const plan = document.getElementById('newPlan')?.value || 'basic';
+  const cycle = document.getElementById('newBillingCycle')?.value || 'monthly';
+  const days = CYCLE_DAYS[cycle] || 30;
+  const price = pricingConfig[plan]?.[cycle] ?? 0;
+
+  const amtEl = document.getElementById('newInitAmount');
+  const expEl = document.getElementById('newExpiry');
+  if (amtEl) amtEl.value = price;
+  if (expEl) expEl.value = addDaysStr(days, new Date());
+};
+
+window.autoFillAdminRenewFromTenant = function() {
+  const tenantId = document.getElementById('payTenantSelect')?.value;
+  const cycle = document.getElementById('payCycleSelect')?.value || 'monthly';
+  const days = CYCLE_DAYS[cycle] || 30;
+  const t = cachedTenants.find(x => x.id === tenantId);
+  const plan = t?.plan || 'basic';
+  const price = pricingConfig[plan]?.[cycle] ?? 0;
+
+  const baseDate = (t?.expiryDate && new Date(t.expiryDate) > new Date())
+    ? new Date(t.expiryDate)
+    : new Date();
+
+  const amtEl = document.getElementById('payAmount');
+  const expEl = document.getElementById('payNewExpiry');
+  if (amtEl) amtEl.value = price;
+  if (expEl) expEl.value = addDaysStr(days, baseDate);
+};
+
+// ═══════════════════════════════════════════
+// 🛟 SUPPORT INFO
+// ═══════════════════════════════════════════
+async function loadSupportInfo() {
+  try {
+    const snap = await getDoc(doc(db, 'appSettings', 'support'));
+    if (snap.exists()) {
+      const d = snap.data();
+      document.getElementById('supPhone').value = d.phone || '';
+      document.getElementById('supTelegram').value = d.telegram || '';
+      document.getElementById('supEmail').value = d.email || '';
+    }
+  } catch (e) { console.error(e); }
+}
+
+window.saveSupportInfo = async function() {
+  const phone = document.getElementById('supPhone').value.trim();
+  let telegram = document.getElementById('supTelegram').value.trim();
+  if (telegram && !telegram.startsWith('@')) telegram = '@' + telegram;
+  const email = document.getElementById('supEmail').value.trim();
+  const status = document.getElementById('supportStatus');
+
+  status.className = 'show status-loading';
+  status.innerText = '⏳ በማስቀመጥ ላይ...';
+
+  try {
+    await setDoc(doc(db, 'appSettings', 'support'), {
+      phone, telegram, email, updatedAt: serverTimestamp()
+    }, { merge: true });
+
+    const shopsSnap = await getDocs(collection(db, 'shops'));
+    const updates = [];
+    shopsSnap.forEach(sDoc => {
+      updates.push(updateDoc(doc(db, 'shops', sDoc.id), {
+        supportInfo: { phone, telegram, email }
+      }));
     });
-  };
+    await Promise.all(updates);
 
-  // ===== SIDEBAR / NAV =====
-  window.toggleSidebar = function() {
-    document.getElementById('sidebar').classList.toggle('open');
-    document.getElementById('sbOverlay').classList.toggle('show');
-  };
+    status.className = 'show status-success';
+    status.innerText = '✅ Support Info ተቀምጧል! ለሁሉም ተጠቃሚዎች ይታያል።';
+    setTimeout(() => { status.className = ''; }, 4000);
+  } catch (e) {
+    status.className = 'show status-error';
+    status.innerText = '❌ ስህተት: ' + e.message;
+  }
+};
 
-  window.switchSection = function(name) {
-    if (name === 'more') return openMoreMenu();
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    const sec = document.getElementById('section-' + name);
-    if (sec) sec.classList.add('active');
-    document.querySelectorAll('.sb-item').forEach(i => i.classList.toggle('active', i.dataset.section === name));
-    document.querySelectorAll('.bn-item').forEach(i => i.classList.toggle('active', i.dataset.section === name));
-    const titles = { dashboard: '📊 Dashboard', shops: '🏢 Shops', users: '👥 Users', billing: '💰 Billing', passwords: '🔔 Password Requests', support: '📞 Support Info', data: '💾 Data Management' };
-    document.getElementById('pageTitle').textContent = titles[name] || 'Admin';
-    if (window.innerWidth < 768) toggleSidebar();
-  };
+// ═══════════════════════════════════════════
+// 📊 STATS & SUBSCRIPTION STATUS HELPER
+// ═══════════════════════════════════════════
+function getSubInfo(t) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  if (t.status === 'suspended' || t.isSuspended) return { key: 'suspended', label: '⏸️ SUSPENDED', cls: 'bg-danger', days: null };
+  if (!t.expiryDate) return { key: 'active', label: '✅ ACTIVE', cls: 'bg-success', days: null };
+  const exp = new Date(t.expiryDate); exp.setHours(0,0,0,0);
+  const days = Math.ceil((exp - today) / (1000*60*60*24));
+  if (days < 0) return { key: 'expired', label: `🚨 EXPIRED (${Math.abs(days)}d)`, cls: 'bg-danger', days };
+  if (days <= 7) return { key: 'expiring', label: `⏳ EXPIRING (${days}d)`, cls: 'bg-warning', days };
+  return { key: 'active', label: `✅ ACTIVE (${days}d left)`, cls: 'bg-success', days };
+}
 
-  window.openMoreMenu = async function() {
-    const choice = await showModal('📋 ተጨማሪ', 'የሚፈልጉትን ክፍል ይምረጡ', [
-      { text: '🔔 Passwords', class: 'btn-info', value: 'passwords' },
-      { text: '📞 Support', class: 'btn-info', value: 'support' },
-      { text: '💾 Data', class: 'btn-info', value: 'data' },
-      { text: '✖ ዝጋ', class: 'btn-outline', value: null }
-    ]);
-    if (choice) switchSection(choice);
-  };
+function renderStats() {
+  const statsGrid = document.getElementById('statsGrid');
+  if (!statsGrid) return;
+  let total = cachedTenants.length, activeCount = 0, expiringCount = 0, expiredCount = 0;
+  cachedTenants.forEach(t => {
+    const s = getSubInfo(t);
+    if (s.key === 'active') activeCount++;
+    else if (s.key === 'expiring') expiringCount++;
+    else if (s.key === 'expired') expiredCount++;
+  });
+  const totalRevenue = cachedPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
 
-  window.toggleColl = function(header) {
-    const body = header.nextElementSibling;
-    const open = body.classList.toggle('open');
-    header.classList.toggle('open', open);
-  };
+  statsGrid.innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total Shops</div><div class="stat-value">${total}</div></div>
+    <div class="stat-card"><div class="stat-label">Active Subs</div><div class="stat-value" style="color:var(--success);">${activeCount}</div></div>
+    <div class="stat-card"><div class="stat-label">Expiring (≤7d)</div><div class="stat-value" style="color:var(--warning);">${expiringCount}</div></div>
+    <div class="stat-card"><div class="stat-label">Expired</div><div class="stat-value" style="color:var(--danger);">${expiredCount}</div></div>
+    <div class="stat-card"><div class="stat-label">Collected (ETB)</div><div class="stat-value" style="color:var(--info);">${money(totalRevenue)}</div></div>
+  `;
+}
 
-  // ===== LOGIN =====
-  window.adminLogin = async function() {
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
-    const errEl = document.getElementById('loginError');
-    errEl.style.display = 'none';
-    if (email !== SUPER_ADMIN_EMAIL) {
-      errEl.textContent = '⚠️ እርስዎ Super Admin አይደሉም!';
-      errEl.style.display = 'block';
-      return;
+function populateTenantSelect() {
+  const sel = document.getElementById('payTenantSelect');
+  if (!sel) return;
+  const prev = sel.value;
+  sel.innerHTML = cachedTenants.map(t => `<option value="${esc(t.id)}">${esc(t.name)} (${esc((t.plan || 'basic').toUpperCase())} | Exp: ${esc(t.expiryDate || '-')})</option>`).join('');
+  if (prev && cachedTenants.some(t => t.id === prev)) sel.value = prev;
+  autoFillAdminRenewFromTenant();
+}
+
+// ═══════════════════════════════════════════
+// ➕ CREATE SHOP / TENANT
+// ═══════════════════════════════════════════
+window.createTenant = async function() {
+  const name = document.getElementById('newName').value.trim();
+  const phone = document.getElementById('newPhone').value.trim();
+  const bizType = document.getElementById('newBizType').value;
+  const plan = document.getElementById('newPlan').value;
+  const cycle = document.getElementById('newBillingCycle').value;
+  const initAmount = parseFloat(document.getElementById('newInitAmount').value) || 0;
+  const expiry = document.getElementById('newExpiry').value;
+  const payMethod = document.getElementById('newPayMethod').value;
+  const payNote = document.getElementById('newPayNote').value.trim() || `Initial ${cycle} subscription`;
+  const customEmail = document.getElementById('newOwnerEmail').value.trim();
+  const password = document.getElementById('newPassword').value;
+  const status = document.getElementById('createStatus');
+
+  if (!name || !phone || !expiry || !password) {
+    status.className = 'show status-error'; status.innerText = '⚠️ የሱቅ ስም፣ ስልክ፣ ማብቂያ ቀን እና ፓስወርድ ያስፈልጋሉ!'; return;
+  }
+  if (password.length < 6) {
+    status.className = 'show status-error'; status.innerText = '⚠️ ፓስወርድ ቢያንስ 6 ፊደላት መሆን አለበት'; return;
+  }
+
+  status.className = 'show status-loading'; status.innerText = '⏳ በመፍጠር ላይ...';
+
+  try {
+    const ownerEmail = customEmail || `${phone}@creditapp.com`;
+    const supportInfo = {
+      phone: document.getElementById('supPhone')?.value.trim() || '',
+      telegram: document.getElementById('supTelegram')?.value.trim() || '',
+      email: document.getElementById('supEmail')?.value.trim() || ''
+    };
+
+    const secondaryApp = initializeApp(firebaseConfig, 'Sec-' + Date.now());
+    const secAuth = getAuth(secondaryApp);
+    const cred = await createUserWithEmailAndPassword(secAuth, ownerEmail, password);
+    const uid = cred.user.uid;
+    await signOut(secAuth);
+    await deleteApp(secondaryApp);
+
+    const paymentEntry = initAmount > 0
+      ? [{ date: new Date().toISOString().split('T')[0], amount: initAmount, cycle, method: payMethod, note: payNote }]
+      : [];
+
+    await setDoc(doc(db, 'shops', uid), {
+      shopId: uid,
+      name,
+      shopName: name,
+      phone,
+      ownerEmail,
+      businessType: bizType,
+      plan,
+      billingCycle: cycle,
+      expiryDate: expiry,
+      supportInfo,
+      lastPaymentAmount: initAmount,
+      lastPaymentMethod: payMethod,
+      paymentHistory: paymentEntry,
+      status: 'active',
+      isSuspended: false,
+      createdAt: serverTimestamp()
+    });
+
+    await setDoc(doc(db, 'users', uid), {
+      email: ownerEmail,
+      phone,
+      role: 'owner',
+      shopId: uid,
+      shopName: name,
+      isTempPassword: true,
+      createdAt: serverTimestamp()
+    });
+
+    if (initAmount > 0) {
+      await addDoc(collection(db, 'billingPayments'), {
+        tenantId: uid,
+        tenantName: name,
+        plan,
+        cycle,
+        amount: initAmount,
+        method: payMethod,
+        newExpiryDate: expiry,
+        note: payNote,
+        type: 'initial',
+        createdAt: serverTimestamp()
+      });
     }
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch (err) {
-      errEl.textContent = '⚠️ Email ወይም Password ትክክል አይደለም';
-      errEl.style.display = 'block';
-    }
-  };
 
-  window.adminLogout = function() { signOut(auth); };
+    status.className = 'show status-success';
+    status.innerHTML = `✅ በተሳካ ሁኔታ ተፈጥሯል!<br><small style="font-size:11px;">Shop: ${esc(name)} | Exp: ${esc(expiry)} | Paid: ${money(initAmount)} ETB</small>`;
 
-  onAuthStateChanged(auth, (user) => {
-    if (user && user.email === SUPER_ADMIN_EMAIL) {
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
-      document.getElementById('userChip').textContent = user.email.split('@')[0];
-      loadAllData();
-    } else {
-      document.getElementById('loginScreen').style.display = 'flex';
-      document.getElementById('app').style.display = 'none';
-    }
+    document.getElementById('newName').value = '';
+    document.getElementById('newPhone').value = '';
+    document.getElementById('newOwnerEmail').value = '';
+    document.getElementById('newPayNote').value = '';
+    document.getElementById('newPassword').value = '123456';
+    syncCreateTenantPricing();
+
+    await loadTenants();
+    await loadBillingHistory();
+    setTimeout(() => { status.className = ''; }, 5000);
+  } catch (e) {
+    status.className = 'show status-error';
+    let msg = e.message;
+    if (e.code === 'auth/email-already-in-use') msg = 'ይህ ስልክ/Email አስቀድሞ ተመዝግቧል';
+    status.innerText = '❌ ስህተት: ' + msg;
+  }
+};
+
+// ═══════════════════════════════════════════
+// 📋 SHOPS & SUBSCRIPTION TRACKER
+// ═══════════════════════════════════════════
+window.loadTenants = async function() {
+  const search = (document.getElementById('searchTenant')?.value || '').toLowerCase();
+  const filterStatus = document.getElementById('filterSubStatus')?.value || 'all';
+  const filterPlan = document.getElementById('filterPlan')?.value || 'all';
+  const filterBizType = document.getElementById('filterBizType')?.value || 'all';
+
+  const snap = await getDocs(collection(db, 'shops'));
+  cachedTenants = [];
+  snap.forEach(d => {
+    const raw = d.data();
+    cachedTenants.push({
+      id: d.id,
+      ...raw,
+      name: raw.name || raw.shopName || 'Unnamed'
+    });
+  });
+  cachedTenants.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+  renderStats();
+  populateTenantSelect();
+
+  const list = document.getElementById('tenantList');
+  list.innerHTML = '';
+  let count = 0;
+
+  cachedTenants.forEach(t => {
+    const sub = getSubInfo(t);
+    const haystack = `${t.name || ''} ${t.phone || ''} ${t.ownerEmail || ''}`.toLowerCase();
+    if (search && !haystack.includes(search)) return;
+    if (filterStatus !== 'all' && sub.key !== filterStatus) return;
+    if (filterPlan !== 'all' && (t.plan || 'basic') !== filterPlan) return;
+    if (filterBizType !== 'all' && (t.businessType || 'credit') !== filterBizType) return;
+
+    count++;
+    const planBadge = t.plan === 'pro'
+      ? '<span class="badge bg-info">PRO</span>'
+      : '<span class="badge bg-dark">BASIC</span>';
+    const suspendedFlag = t.status === 'suspended' || t.isSuspended;
+
+    list.innerHTML += `
+      <div class="tenant-item">
+        <div>
+          <h3>
+            ${esc(t.name)}
+            <span class="badge ${sub.cls}">${sub.label}</span>
+            ${planBadge}
+          </h3>
+          <p>
+            📞 ${esc(t.phone || '-')} • 🏷️ ${esc(t.businessType || 'credit')} <br>
+            📅 Exp: <b>${esc(t.expiryDate || '-')}</b> <br>
+            💰 Last Pay: <b>${money(t.lastPaymentAmount || 0)} ETB</b> (${esc(t.lastPaymentMethod || '-')}) <br>
+            🆔 ${esc(t.id)}
+          </p>
+        </div>
+        <div class="action-btns">
+          <button onclick="openQuickPay('${escJs(t.id)}')" style="background:var(--success);">💳 Pay / Renew</button>
+          <button onclick="editTenant('${escJs(t.id)}')" style="background:var(--primary);">✏️ Edit</button>
+          <button onclick="toggleSuspend('${escJs(t.id)}', ${suspendedFlag})" 
+                  style="background:${suspendedFlag ? 'var(--success)' : 'var(--warning)'};">
+            ${suspendedFlag ? '▶️ Activate' : '⏸️ Suspend'}
+          </button>
+          <button onclick="resetUserPassword('${escJs(t.id)}')" style="background:var(--accent); color:var(--primary);">🔑 Reset</button>
+          <button onclick="deleteTenant('${escJs(t.id)}', '${escJs(t.name)}')" 
+                  style="background:var(--danger);">🗑️ Delete</button>
+        </div>
+      </div>
+    `;
   });
 
-  // ===== LOAD ALL DATA =====
-  async function loadAllData() {
-    try {
-      const snap = await getDocs(collection(db, 'shops'));
-      allTenants = [];
-      snap.forEach(d => allTenants.push({ id: d.id, ...d.data() }));
-      renderStats();
-      renderTenantList();
-      renderRecentShops();
-      renderBilling();
-    } catch (e) { console.error(e); toast('ሱቆችን መጫን አልተሳካም: ' + e.message, 'error'); }
+  if (count === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="emoji">📭</div><div>ምንም ውጤት አልተገኘም</div></div>`;
+  }
+};
 
-    try {
-      const snap = await getDocs(collection(db, 'users'));
-      allUsers = [];
-      snap.forEach(d => allUsers.push({ id: d.id, ...d.data() }));
-      renderUserList();
-    } catch (e) { console.error(e); }
+window.openQuickPay = function(tenantId) {
+  switchAdminTab('panelBilling');
+  const sel = document.getElementById('payTenantSelect');
+  if (sel) sel.value = tenantId;
+  autoFillAdminRenewFromTenant();
+};
 
-    try {
-      const s = await getDoc(doc(db, 'settings', 'support'));
-      if (s.exists()) {
-        allSupportInfo = s.data();
-        document.getElementById('supportPhone').value = allSupportInfo.phone || '';
-        document.getElementById('supportEmail').value = allSupportInfo.email || '';
-        document.getElementById('supportTelegram').value = allSupportInfo.telegram || '';
-      }
-    } catch (e) { console.error(e); }
+// ═══════════════════════════════════════════
+// 💳 BILL PAYMENTS & SCREENSHOT REQUESTS
+// ═══════════════════════════════════════════
+window.submitBillPayment = async function() {
+  const tenantId = document.getElementById('payTenantSelect').value;
+  const cycle = document.getElementById('payCycleSelect').value;
+  const amount = parseFloat(document.getElementById('payAmount').value) || 0;
+  const method = document.getElementById('payMethod').value;
+  const newExpiry = document.getElementById('payNewExpiry').value;
+  const note = document.getElementById('payNote').value.trim() || `${cycle} renewal payment`;
+  const status = document.getElementById('billingStatus');
+
+  if (!tenantId || !newExpiry) {
+    status.className = 'show status-error';
+    status.innerText = '⚠️ Shop እና New Expiry Date ያስፈልጋሉ';
+    return;
   }
 
-  // ===== DASHBOARD STATS =====
-  function renderStats() {
-    const today = new Date().toISOString().split('T')[0];
-    let active = 0, expired = 0, suspended = 0, paid = 0, unpaid = 0;
-    let expiredNames = [];
-    allTenants.forEach(t => {
-      const amt = parseFloat(t.amount) || 0;
-      if (t.status === 'suspended') { suspended++; unpaid += amt; }
-      else if (t.expiryDate && t.expiryDate < today) { expired++; unpaid += amt; expiredNames.push(t.shopName); }
-      else { active++; paid += amt; }
-    });
-    document.getElementById('statTotalTenants').textContent = allTenants.length;
-    document.getElementById('statActive').textContent = active;
-    document.getElementById('statExpired').textContent = expired;
-    document.getElementById('statSuspended').textContent = suspended;
-    document.getElementById('statPaid').textContent = paid.toLocaleString('en-US', { minimumFractionDigits: 2 });
-    document.getElementById('statUnpaid').textContent = unpaid.toLocaleString('en-US', { minimumFractionDigits: 2 });
-    const banner = document.getElementById('paymentBanner');
-    if (expiredNames.length > 0) {
-      banner.style.display = 'block';
-      document.getElementById('paymentBannerText').textContent = `${expiredNames.length} ሱቆች የክፍያ ጊዜያቸው አልፎበታል: ${expiredNames.join(', ')}`;
-    } else banner.style.display = 'none';
-  }
+  status.className = 'show status-loading';
+  status.innerText = '⏳ በማስቀመጥ ላይ...';
 
-  function renderRecentShops() {
-    const el = document.getElementById('recentShops');
-    if (allTenants.length === 0) { el.innerHTML = '<div class="empty"><div class="emoji">📭</div><p>ምንም ሱቅ የለም</p></div>'; return; }
-    const sorted = [...allTenants].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')).slice(0, 5);
-    el.innerHTML = sorted.map(t => `<div style="padding:10px 0; border-bottom:1px solid #edf2f7;"><strong style="color:#2c5282;">${t.shopName}</strong><div style="font-size:11px; color:#718096;">${t.createdAt ? new Date(t.createdAt).toLocaleDateString() : ''}</div></div>`).join('');
-  }
-   
-  // ===== SHOPS =====
-  window.renderTenantList = function() {
-    const el = document.getElementById('tenantList');
-    const search = (document.getElementById('searchTenant')?.value || '').toLowerCase();
-    const filter = document.getElementById('filterStatus')?.value || 'all';
-    const today = new Date().toISOString().split('T')[0];
+  try {
+    const tObj = cachedTenants.find(x => x.id === tenantId);
+    const history = Array.isArray(tObj?.paymentHistory) ? [...tObj.paymentHistory] : [];
+    history.push({ date: new Date().toISOString().split('T')[0], amount, cycle, method, note });
 
-    let filtered = allTenants.filter(t => {
-      const matchSearch = (t.shopName || '').toLowerCase().includes(search) || (t.phone || '').includes(search);
-      let matchStatus = true;
-      if (filter === 'active') matchStatus = t.status !== 'suspended' && (!t.expiryDate || t.expiryDate >= today);
-      if (filter === 'expired') matchStatus = t.status !== 'suspended' && t.expiryDate && t.expiryDate < today;
-      if (filter === 'suspended') matchStatus = t.status === 'suspended';
-      return matchSearch && matchStatus;
+    await updateDoc(doc(db, 'shops', tenantId), {
+      expiryDate: newExpiry,
+      billingCycle: cycle,
+      status: 'active',
+      isSuspended: false,
+      lastPaymentAmount: amount,
+      lastPaymentMethod: method,
+      paymentHistory: history
     });
 
-    if (filtered.length === 0) {
-      el.innerHTML = '<div class="empty"><div class="emoji">🔍</div><p>ምንም ሱቅ አልተገኘም</p></div>';
+    await addDoc(collection(db, 'billingPayments'), {
+      tenantId,
+      tenantName: tObj?.name || tenantId,
+      plan: tObj?.plan || 'basic',
+      cycle,
+      amount,
+      method,
+      newExpiryDate: newExpiry,
+      note,
+      type: 'renewal',
+      createdAt: serverTimestamp()
+    });
+
+    document.getElementById('payAmount').value = '';
+    document.getElementById('payNote').value = '';
+    status.className = 'show status-success';
+    status.innerText = `✅ ክፍያ ተመዝግቧል! አዲስ ማብቂያ: ${newExpiry}`;
+
+    await loadTenants();
+    await loadBillingHistory();
+    setTimeout(() => { status.className = ''; }, 4000);
+  } catch (e) {
+    status.className = 'show status-error';
+    status.innerText = '❌ ስህተት: ' + e.message;
+  }
+};
+
+async function loadBillingHistory() {
+  const list = document.getElementById('billingHistoryList');
+  try {
+    const snap = await getDocs(collection(db, 'billingPayments'));
+    cachedPayments = [];
+    snap.forEach(d => cachedPayments.push({ id: d.id, ...d.data() }));
+    cachedPayments.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+    renderStats();
+
+    if (cachedPayments.length === 0) {
+      list.innerHTML = `<div class="empty-state"><div class="emoji">🧾</div><div>ምንም የክፍያ ታሪክ የለም</div></div>`;
       return;
     }
 
-    el.innerHTML = filtered.map(t => {
-      const isExpired = t.expiryDate && t.expiryDate < today;
-      let badge, cls, daysLeftText = '';
-      
-      if (t.status === 'suspended') { badge = '❌ የታገደ'; cls = 'status-suspended'; }
-      else if (isExpired) { badge = '⏳ ጊዜው አልፏል'; cls = 'status-expired'; }
-      else { 
-        badge = '✅ ንቁ'; cls = 'status-active'; 
-        if (t.expiryDate) {
-          const diffTime = Math.abs(new Date(t.expiryDate) - new Date());
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          daysLeftText = `<div style="font-size:10px; color:#718096; margin-top:2px;">${diffDays} ቀናት ቀርተዋል</div>`;
-        }
-      }
-      
-      const cardCls = t.status === 'suspended' ? 'suspended' : (isExpired ? 'expired' : '');
-
+    list.innerHTML = cachedPayments.slice(0, 24).map(p => {
+      const dt = p.createdAt?.toDate ? p.createdAt.toDate().toLocaleDateString() : '-';
       return `
-      <div class="tenant-card ${cardCls}">
-        <div class="tenant-header">
-          <div class="tenant-title">🏢 ${t.shopName || 'ስም የለም'}</div>
-          <a href="#" class="tenant-website" style="display:none;"></a>
+        <div class="tenant-item">
+          <div>
+            <h3>💰 ${money(p.amount)} ETB <span class="badge bg-success">${esc(p.method || 'Cash')}</span></h3>
+            <p>
+              🏢 <b>${esc(p.tenantName || p.tenantId)}</b> (${esc((p.cycle || '').toUpperCase())}) <br>
+              📅 Paid: ${dt} | New Exp: <b>${esc(p.newExpiryDate || '-')}</b> <br>
+              📝 ${esc(p.note || '-')}
+            </p>
+          </div>
         </div>
-        <div class="tenant-emails">
-          <div class="tenant-email-item">📞 <strong>ስልክ:</strong> ${t.phone || '—'}</div>
-        </div>
-        <div class="tenant-info">💰 <strong>ክፍያ:</strong> ${t.amount || 0} ብር/ወር</div>
-        <div class="badge-status ${cls}">${badge} ${t.expiryDate ? `(${t.expiryDate})` : ''}</div>
-        ${daysLeftText}
-        
-        <div class="tenant-actions">
-          <button class="btn btn-success btn-sm" onclick="markPaid('${t.id}')">💰 ክፍያ</button>
-          <button class="btn btn-info btn-sm" onclick="editTenant('${t.id}')">✏️ አሻሽል</button>
-          <button class="btn ${t.status === 'suspended' ? 'btn-success' : 'btn-warning'} btn-sm" onclick="toggleSuspend('${t.id}', '${t.status}')">${t.status === 'suspended' ? '✅ ፍቃድ' : '⏸️ አቁም'}</button>
-          <button class="btn btn-primary btn-sm" onclick="viewHistory('${t.id}')">📜 ታሪክ (${(t.paymentHistory || []).length})</button>
-          <button class="btn btn-warning btn-sm" onclick="sendBannerToShop('${t.id}')">📢 ማሳወቂያ</button>
-          <button class="btn btn-info btn-sm" onclick="addEmployeeToTenant('${t.id}', '${t.shopName}')">👷 ሰራተኛ ጨምር</button>
-          <button class="btn btn-danger btn-sm btn-full" onclick="deleteTenant('${t.id}')">🗑️ አጥፋ</button>
-        </div>
-      </div>`;
+      `;
     }).join('');
-  };
-
-  window.addTenant = async function() {
-    const name = document.getElementById('newName').value.trim();
-    const phone = document.getElementById('newPhone').value.trim();
-    const tempPass = document.getElementById('newTempPass').value.trim();
-    const trialDays = parseInt(document.getElementById('newTrialDays').value) || 7;
-    const amount = parseFloat(document.getElementById('newAmount').value) || 0;
-
-    if (!name || !phone || !tempPass) {
-      toast('ስም፣ ስልክ እና ፓስወርድ ያስፈልጋሉ', 'error'); return;
-    }
-    if (tempPass.length < 6) { toast('ፓስወርድ ቢያንስ 6 ፊደል ይሁን', 'error'); return; }
-
-    try {
-      const email = `${phone}@creditapp.com`;
-      
-      // 1. የ Trial Expiry ቀን ማስላት
-      const expiry = new Date();
-      expiry.setDate(expiry.getDate() + trialDays);
-      const expiryStr = expiry.toISOString().split('T')[0];
-
-      const secondaryApp = initializeApp(firebaseConfig, 'Sec-' + Date.now());
-      const secAuth = getAuth(secondaryApp);
-      
-      let uid;
-      try {
-        const cred = await createUserWithEmailAndPassword(secAuth, email, tempPass);
-        uid = cred.user.uid;
-      } finally {
-        await deleteApp(secondaryApp);
-      }
-
-      // 2. ወደ shops ኮሌክሽን መመዝገብ
-      await setDoc(doc(db, 'shops', uid), {
-        shopId: uid,
-        shopName: name,
-        phone: phone,
-        ownerEmail: email,
-        status: 'active',
-        amount: amount,
-        expiryDate: expiryStr,
-        paymentHistory: [],
-        createdAt: new Date().toISOString()
-      });
-
-            // 3. ወደ users ኮሌክሽን መመዝገብ (ከ isTempPassword ጋር)
-      await setDoc(doc(db, 'users', uid), {
-        email: email,
-        phone: phone,
-        role: 'owner',
-        shopId: uid,
-        shopName: name,
-        isTempPassword: true, // ✅ ይህ ተጨምሯል
-        createdAt: new Date().toISOString()
-      });
-
-      toast(`✅ ሱቅ + ${trialDays} ቀናት የሙከራ ጊዜ ተፈጥሯል`, 'success');
-
-      ['newName','newPhone','newAmount'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('newTempPass').value = '123456';
-      document.getElementById('newTrialDays').value = '7';
-      loadAllData();
-    } catch (e) { toast('ስህተት: ' + e.message, 'error'); }
-  };
-
-  window.markPaid = async function(id) {
-    const t = allTenants.find(x => x.id === id);
-    if (!t) return;
-    const months = prompt('ለስንት ወር ክፍያ?', '1');
-    if (!months || isNaN(months)) return;
-    const method = prompt('የክፍያ ዘዴ? (Cash/Transfer/Telebirr)', 'Cash') || 'Cash';
-    const today = new Date();
-    let cur = t.expiryDate ? new Date(t.expiryDate) : new Date();
-    if (cur < today) cur = today;
-    cur.setMonth(cur.getMonth() + parseInt(months));
-    const newExpiry = cur.toISOString().split('T')[0];
-    const amt = (parseFloat(t.amount) || 0) * parseInt(months);
-    const history = t.paymentHistory || [];
-    history.push({ date: today.toISOString().split('T')[0], amount: amt, months: parseInt(months), method });
-    try {
-      await updateDoc(doc(db, 'shops', id), { expiryDate: newExpiry, status: 'active', paymentHistory: history });
-      toast(`✅ ክፍያ ተመዝግቧል። አዲስ ማብቂያ: ${newExpiry}`, 'success');
-      loadAllData();
-    } catch (e) { toast(e.message, 'error'); }
-  };
-
-  window.toggleSuspend = async function(id, cur) {
-    const newStatus = cur === 'suspended' ? 'active' : 'suspended';
-    const ok = await showModal('⚠️ ማረጋገጫ', cur === 'suspended' ? 'ሱቁን ማንቃት ትፈልጋለህ?' : 'ሱቁን ማቆም ትፈልጋለህ?', [
-      { text: 'አዎ', class: 'btn-danger', value: true },
-      { text: 'አይ', class: 'btn-outline', value: false }
-    ]);
-    if (!ok) return;
-    try {
-      await updateDoc(doc(db, 'shops', id), { status: newStatus });
-      toast(newStatus === 'active' ? '✅ ንቁ ሆኗል' : '⏸️ ተቆልፏል', 'success');
-      loadAllData();
-    } catch (e) { toast(e.message, 'error'); }
-  };
-
-  window.deleteTenant = async function(id) {
-    const ok = await showModal('🚨 አደጋ!', 'ሱቁን እና ተጠቃሚዎቹን ማጥፋት? አይመለስም!', [
-      { text: 'አጥፋ', class: 'btn-danger', value: true },
-      { text: 'ተወው', class: 'btn-outline', value: false }
-    ]);
-    if (!ok) return;
-    try {
-      const us = await getDocs(query(collection(db, 'users'), where('shopId', '==', id)));
-      for (const u of us.docs) await deleteDoc(doc(db, 'users', u.id));
-      await deleteDoc(doc(db, 'shops', id));
-      toast('✅ ተጠፍቷል', 'success');
-      loadAllData();
-    } catch (e) { toast(e.message, 'error'); }
-  };
-
-  window.editTenant = async function(id) {
-    const t = allTenants.find(x => x.id === id);
-    if (!t) return;
-    const name = prompt('ስም:', t.shopName) ?? null;
-    if (name === null) return;
-    const phone = prompt('ስልክ:', t.phone || '') ?? t.phone;
-    const amount = prompt('ክፍያ (ብር):', t.amount || 0) ?? t.amount;
-    try {
-      await updateDoc(doc(db, 'shops', id), { shopName: name, phone, amount: parseFloat(amount) || 0 });
-      toast('✅ ተስተካክሏል', 'success');
-      loadAllData();
-    } catch (e) { toast(e.message, 'error'); }
-  };
-
-  window.viewHistory = function(id) {
-    const t = allTenants.find(x => x.id === id);
-    const h = t?.paymentHistory || [];
-    if (!h.length) { toast('ምንም ታሪክ የለም', 'info'); return; }
-    const txt = h.map(x => `${x.date} — ${x.amount} ብር (${x.months} ወር, ${x.method || '—'})`).join('\n');
-    showModal('📜 የክፍያ ታሪክ', txt, [{ text: 'ዝጋ', class: 'btn-primary' }]);
-  };
-
-  window.sendBannerToShop = async function(id) {
-    const t = allTenants.find(x => x.id === id);
-    if (!t) return;
-    const msg = prompt('ለሱቁ የሚላክ መልእክት (ባዶ ብትለው ይወገዳል):', t.subscriptionMessage || '');
-    if (msg === null) return; 
-    const status = prompt('ሁኔታ (warning / expired / success):', t.subscriptionStatus || 'warning');
-    try {
-      await updateDoc(doc(db, 'shops', id), {
-        subscriptionMessage: msg.trim(),
-        subscriptionStatus: status || 'warning'
-      });
-      toast('✅ ማሳወቂያ ተልኳል', 'success');
-      loadAllData();
-    } catch (e) { toast(e.message, 'error'); }
-  };
-
-  window.addEmployeeToTenant = async function(shopId, shopName) {
-    const phone = prompt(`ለ "${shopName}" አዲስ ሰራተኛ ስልክ ቁጥር አስገባ:`);
-    if (!phone) return;
-    const pass = prompt('ጊዜያዊ ፓስወርድ (ቢያንስ 6 ፊደል):', '123456');
-    if (!pass || pass.length < 6) { toast('ፓስወርድ ቢያንስ 6 ፊደል ይሁን', 'error'); return; }
-
-    try {
-      const email = `${phone}@creditapp.com`;
-      const secondaryApp = initializeApp(firebaseConfig, 'Sec-' + Date.now());
-      const secAuth = getAuth(secondaryApp);
-      
-      let uid;
-      try {
-        const cred = await createUserWithEmailAndPassword(secAuth, email, pass);
-        uid = cred.user.uid;
-      } finally {
-        await deleteApp(secondaryApp);
-      }
-      
-            await setDoc(doc(db, 'users', uid), {
-        email: email, 
-        phone: phone, 
-        role: 'employee', 
-        shopId: shopId,
-        shopName: shopName, 
-        isTempPassword: true, // ✅ ይህ ተጨምሯል
-        createdAt: new Date().toISOString()
-      });
-      
-      toast(`✅ ሰራተኛ ተጨምሯል!`, 'success');
-      loadAllData();
-    } catch (e) { toast('ስህተት: ' + e.message, 'error'); }
-  };
- 
-  // ===== USERS =====
-    window.renderUserList = function() {
-    const el = document.getElementById('userList');
-    const search = (document.getElementById('searchUser')?.value || '').toLowerCase();
-    let filtered = allUsers.filter(u => (u.email || '').toLowerCase().includes(search) || (u.name || '').toLowerCase().includes(search));
-    
-    if (!filtered.length) { el.innerHTML = '<div class="empty"><div class="emoji">👤</div><p>ምንም ተጠቃሚ የለም</p></div>'; return; }
-    
-    el.innerHTML = filtered.map(u => {
-      const shop = allTenants.find(t => t.shopId === u.shopId || t.id === u.shopId);
-      const roleIcon = u.role === 'owner' ? '👑' : '👷';
-      
-      return `<div style="padding:12px; border-bottom:1px solid #edf2f7;">
-        <div style="font-weight:700; color:#2c5282; font-size:13px;">${roleIcon} ${u.name || u.email}</div>
-        <div style="font-size:11px; color:#718096; margin-top:4px;">🏢 ${shop?.shopName || u.shopName || '—'} • ${u.role}</div>
-        <div style="font-size:11px; color:#718096; margin-top:2px;">📞 ${u.phone || '—'}</div>
-        
-        <div style="display:flex; gap:6px; margin-top:8px;">
-          <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">🗑️ አጥፋ</button>
-        </div>
-      </div>`;
-    }).join('');
-  };
-  window.sendResetLink = async function(email) {
-    try { await sendPasswordResetEmail(auth, email); toast(`📧 ሊንክ ወደ ${email} ተልኳል`, 'success'); }
-    catch (e) { toast(e.message, 'error'); }
-  };
-
-  window.deleteUser = async function(id) {
-    const ok = await showModal('⚠️', 'ተጠቃሚውን ማጥፋት?', [
-      { text: 'አጥፋ', class: 'btn-danger', value: true }, { text: 'ተወው', class: 'btn-outline', value: false }
-    ]);
-    if (!ok) return;
-    try { await deleteDoc(doc(db, 'users', id)); toast('✅ ተጠፍቷል', 'success'); loadAllData(); }
-    catch (e) { toast(e.message, 'error'); }
-  };
-
-  // ===== BILLING =====
-  function renderBilling() {
-    const sumEl = document.getElementById('billingSummary');
-    const histEl = document.getElementById('billingHistory');
-    let total = 0, count = 0;
-    allTenants.forEach(t => (t.paymentHistory || []).forEach(p => { total += p.amount || 0; count++; }));
-    sumEl.innerHTML = `<div class="stats-grid" style="grid-template-columns:1fr 1fr;">
-      <div class="stat-card"><div class="value val-green">${total.toLocaleString()}</div><div class="label">💰 ጠቅላላ ገቢ (ብር)</div></div>
-      <div class="stat-card"><div class="value val-blue">${count}</div><div class="label">📜 ክፍያዎች</div></div>
-    </div>`;
-
-    let all = [];
-    allTenants.forEach(t => (t.paymentHistory || []).forEach(p => all.push({ ...p, tenant: t.shopName })));
-    all.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-    if (!all.length) { histEl.innerHTML = '<div class="empty"><div class="emoji">💰</div><p>ምንም ክፍያ የለም</p></div>'; return; }
-    histEl.innerHTML = all.slice(0, 50).map(p => `<div style="padding:10px 0; border-bottom:1px solid #edf2f7; display:flex; justify-content:space-between;">
-      <div><strong style="color:#2c5282; font-size:13px;">${p.tenant}</strong><div style="font-size:11px; color:#718096;">${p.date} • ${p.method || '—'}</div></div>
-      <div style="color:#276749; font-weight:800;">${p.amount} ብር</div>
-    </div>`).join('');
+  } catch (e) {
+    list.innerHTML = `<p style="color:var(--danger); font-size:13px;">ስህተት: ${esc(e.message)}</p>`;
   }
+}
 
-  // ===== SUPPORT =====
-  window.saveSupportInfo = async function() {
-    const phone = document.getElementById('supportPhone').value.trim();
-    const email = document.getElementById('supportEmail').value.trim();
-    const telegram = document.getElementById('supportTelegram').value.trim();
-    try { await setDoc(doc(db, 'settings', 'support'), { phone, email, telegram }, { merge: true }); toast('✅ ተቀምጧል', 'success'); }
-    catch (e) { toast(e.message, 'error'); }
-  };
+async function loadTenantPaymentRequests() {
+  const list = document.getElementById('tenantPaymentRequestsList');
+  const badge = document.getElementById('payReqBadgeSide');
+  try {
+    const snap = await getDocs(query(collection(db, 'billingRequests'), where('status', '==', 'pending')));
+    const rows = [];
+    snap.forEach(d => rows.push({ id: d.id, ...d.data() }));
 
-  // ===== DATA =====
-  window.exportCSV = function() {
-    if (!allTenants.length) { toast('ዳታ የለም', 'error'); return; }
-    let csv = '\uFEFFስም,ስልክ,ባለቤት,ክፍያ,ማብቂያ,ሁኔታ\n';
-    allTenants.forEach(t => {
-      const st = t.status === 'suspended' ? 'የታገደ' : 'ንቁ';
-      csv += `"${t.shopName}","${t.phone || ''}","${t.ownerEmail || ''}",${t.amount || 0},"${t.expiryDate || ''}","${st}"\n`;
+    if (badge) {
+      badge.textContent = String(rows.length);
+      badge.style.display = rows.length > 0 ? 'inline-block' : 'none';
+    }
+
+    if (rows.length === 0) {
+      list.innerHTML = `<div class="empty-state"><div class="emoji">✅</div><div>ምንም የክፍያ ጥያቄ የለም</div></div>`;
+      return;
+    }
+
+    list.innerHTML = rows.map(r => {
+      const proofHtml = r.screenshotUrl
+        ? `<img src="${esc(r.screenshotUrl)}" alt="Payment Proof" class="proof-thumb" onclick="openProofModal(this.src)">`
+        : '';
+      return `
+        <div class="tenant-item">
+          <div>
+            <h3>🏢 ${esc(r.tenantName || r.tenantId)} <span class="badge bg-warning">PENDING</span></h3>
+            <p>
+              💰 Amount: <b>${money(r.amount || 0)} ETB</b> | Method: <b>${esc(r.method || '-')}</b> <br>
+              ⏱️ Cycle: <b>${esc((r.cycle || 'monthly').toUpperCase())}</b> | New Exp: <b>${esc(r.requestedExpiryDate || '-')}</b> <br>
+              📝 Ref/Note: ${esc(r.note || '-')}
+            </p>
+            ${proofHtml}
+          </div>
+          <div class="action-btns">
+            <button onclick="approveBillingRequest('${r.id}', '${escJs(r.tenantId)}', ${Number(r.amount || 0)}, '${escJs(r.method || 'Cash')}', '${escJs(r.cycle || 'monthly')}', '${escJs(r.requestedExpiryDate || '')}', '${escJs(r.note || '')}', '${escJs(r.screenshotUrl || '')}')" style="background:var(--success);">✅ Approve & Renew</button>
+            <button onclick="rejectBillingRequest('${r.id}')" style="background:var(--danger);">❌ Reject</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (e) {
+    list.innerHTML = `<p style="color:var(--muted); font-size:13px;">No requests or rules pending.</p>`;
+  }
+}
+
+window.approveBillingRequest = async function(reqId, tenantId, amount, method, cycle, newExpiry, note, screenshotUrl) {
+  const days = CYCLE_DAYS[cycle] || 30;
+  const tObj = cachedTenants.find(x => x.id === tenantId);
+  const baseDate = (tObj?.expiryDate && new Date(tObj.expiryDate) > new Date())
+    ? new Date(tObj.expiryDate)
+    : new Date();
+  const finalExpiry = newExpiry || addDaysStr(days, baseDate);
+
+  try {
+    const history = Array.isArray(tObj?.paymentHistory) ? [...tObj.paymentHistory] : [];
+    history.push({ date: new Date().toISOString().split('T')[0], amount, cycle, method, note: note || 'Approved payment request' });
+
+    await updateDoc(doc(db, 'shops', tenantId), {
+      expiryDate: finalExpiry,
+      billingCycle: cycle,
+      status: 'active',
+      isSuspended: false,
+      lastPaymentAmount: amount,
+      lastPaymentMethod: method,
+      paymentHistory: history
     });
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = `shops-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click(); URL.revokeObjectURL(url);
-    toast('✅ CSV ወርዷል', 'success');
-  };
+    await addDoc(collection(db, 'billingPayments'), {
+      tenantId,
+      tenantName: tObj?.name || tenantId,
+      plan: tObj?.plan || 'basic',
+      cycle,
+      amount,
+      method,
+      newExpiryDate: finalExpiry,
+      note: note || 'Approved payment request',
+      screenshotUrl: screenshotUrl || '',
+      type: 'request_approved',
+      createdAt: serverTimestamp()
+    });
+    await updateDoc(doc(db, 'billingRequests', reqId), { status: 'approved', approvedAt: serverTimestamp() });
+    alert(`✅ ክፍያ ጸድቋል! አዲስ ማብቂያ: ${finalExpiry}`);
+    await loadTenants();
+    await loadBillingHistory();
+    await loadTenantPaymentRequests();
+  } catch (e) { alert('❌ ስህተት: ' + e.message); }
+};
 
-  window.exportBackup = function() {
-    const data = { tenants: allTenants, users: allUsers, support: allSupportInfo, exportedAt: new Date().toISOString() };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = `backup-${new Date().toISOString().split('T')[0]}.json`;
-    a.click(); URL.revokeObjectURL(url);
-    toast('✅ ባክአፕ ወርዷል', 'success');
-  };
+window.rejectBillingRequest = async function(reqId) {
+  if (!confirm('የክፍያ ጥያቄውን ውድቅ ማድረግ?')) return;
+  try {
+    await updateDoc(doc(db, 'billingRequests', reqId), { status: 'rejected', rejectedAt: serverTimestamp() });
+    await loadTenantPaymentRequests();
+  } catch (e) { alert('❌ ስህተት: ' + e.message); }
+};
 
+// ═══════════════════════════════════════════
+// 🎯 SHOP ACTIONS
+// ═══════════════════════════════════════════
+window.editTenant = async function(id) {
+  try {
+    const shopDoc = await getDoc(doc(db, 'shops', id));
+    if (!shopDoc.exists()) return alert('ሱቅ አልተገኘም');
+    const t = shopDoc.data();
+
+    const newName = prompt('የሱቅ ስም:', t.name || t.shopName || '');
+    if (newName === null) return;
+    const newExpiry = prompt('የማብቂያ ቀን (YYYY-MM-DD):', t.expiryDate || '');
+    if (newExpiry === null) return;
+    const newPlan = prompt('ፕላን (basic/pro):', t.plan || 'basic');
+    if (newPlan === null) return;
+    if (!['basic', 'pro'].includes(newPlan)) return alert('⚠️ ፕላን basic ወይም pro መሆን አለበት');
+
+    await updateDoc(doc(db, 'shops', id), { name: newName, shopName: newName, expiryDate: newExpiry, plan: newPlan });
+    alert('✅ ተሻሽሏል');
+    loadTenants();
+  } catch (e) { alert('❌ ስህተት: ' + e.message); }
+};
+
+window.toggleSuspend = async function(id, currentStatus) {
+  if (!confirm(currentStatus ? 'ይህን ሱቅ ማንቃት?' : 'ይህን ሱቅ ማገድ?')) return;
+  try {
+    const nextSuspended = !currentStatus;
+    await updateDoc(doc(db, 'shops', id), {
+      isSuspended: nextSuspended,
+      status: nextSuspended ? 'suspended' : 'active'
+    });
+    alert('✅ ተሻሽሏል');
+    loadTenants();
+  } catch (e) { alert('❌ ስህተት: ' + e.message); }
+};
+
+window.resetUserPassword = async function(shopId) {
+  try {
+    const usersSnap = await getDocs(query(collection(db, 'users'), where('shopId', '==', shopId), where('role', '==', 'owner')));
+    if (usersSnap.empty) return alert('❌ Owner አልተገኘም');
+    const ownerEmail = usersSnap.docs[0].data().email;
+    if (!confirm(`የ "${ownerEmail}" ፓስወርድ ሪሴት ኢሜይል ይላክ?`)) return;
+    await sendPasswordResetEmail(auth, ownerEmail);
+    alert(`✅ የሪሴት ኢሜይል ወደ ${ownerEmail} ተልኳል`);
+  } catch (e) { alert('❌ ስህተት: ' + e.message); }
+};
+
+window.deleteTenant = async function(id, name) {
+  if (!confirm(`🚨 "${name}" ን በእርግጥ ማጥፋት?\n\nሁሉም ተያያዥ ዳታ ይጠፋል!`)) return;
+  if (!confirm('የመጨረሻ ማረጋገጫ? ይህ ተመላሽ አይደለም!')) return;
+
+  try {
+    const collections = ['credits', 'creditPayments', 'sales', 'expenses', 'customers', 'billingPayments', 'billingRequests'];
+    for (const colName of collections) {
+      const snap = await getDocs(query(collection(db, colName), where('shopId', '==', id)));
+      for (const d of snap.docs) await deleteDoc(doc(db, colName, d.id));
+    }
+    const usersSnap = await getDocs(query(collection(db, 'users'), where('shopId', '==', id)));
+    for (const u of usersSnap.docs) await deleteDoc(doc(db, 'users', u.id));
+    await deleteDoc(doc(db, 'shops', id));
+    alert('✅ ሱቁ ተጠፍቷል');
+    loadTenants();
+  } catch (e) { alert('❌ ስህተት: ' + e.message); }
+};
+
+// ═══════════════════════════════════════════
+// 🔑 PASSWORD REQUESTS
+// ═══════════════════════════════════════════
+async function loadPasswordRequests() {
+  const list = document.getElementById('passwordRequestsList');
+  const badgeSide = document.getElementById('reqBadgeSide');
+  try {
+    const snap = await getDocs(query(collection(db, 'passwordRequests'), where('status', '==', 'pending')));
+    if (badgeSide) {
+      badgeSide.textContent = String(snap.size);
+      badgeSide.style.display = snap.size > 0 ? 'inline-block' : 'none';
+    }
+    if (snap.empty) {
+      list.innerHTML = `<div class="empty-state"><div class="emoji">✅</div><div>ምንም ጥያቄ የለም</div></div>`;
+      return;
+    }
+    list.innerHTML = '';
+    snap.forEach(d => {
+      const r = d.data();
+      const date = r.requestedAt ? r.requestedAt.toDate().toLocaleString() : 'Unknown';
+      list.innerHTML += `
+        <div class="tenant-item">
+          <div>
+            <h3>📧 ${esc(r.email)}</h3>
+            <p>📅 ${date} <br> 🆔 ${d.id}</p>
+          </div>
+          <div class="action-btns">
+            <button onclick="approvePasswordReset('${d.id}', '${escJs(r.email)}')" style="background:var(--success);">✅ Approve</button>
+            <button onclick="rejectPasswordReset('${d.id}')" style="background:var(--danger);">❌ Reject</button>
+          </div>
+        </div>
+      `;
+    });
+  } catch (e) {
+    list.innerHTML = `<p style="color:var(--danger); font-size:13px;">ስህተት: ${esc(e.message)}</p>`;
+  }
+}
+
+window.approvePasswordReset = async function(reqId, email) {
+  if (!confirm(`የ "${email}" ፓስወርድ ሪሴት ኢሜይል ይላክ?`)) return;
+  try {
+    const usersSnap = await getDocs(query(collection(db, 'users'), where('email', '==', email)));
+    if (usersSnap.empty) return alert('❌ ተጠቃሚ አልተገኘም');
+    await updateDoc(doc(db, 'users', usersSnap.docs[0].id), { isTempPassword: true });
+    await sendPasswordResetEmail(auth, email);
+    await updateDoc(doc(db, 'passwordRequests', reqId), { status: 'approved', approvedAt: serverTimestamp() });
+    alert(`✅ የሪሴት ኢሜይል ወደ ${email} ተልኳል`);
+    loadPasswordRequests();
+  } catch (e) { alert('❌ ስህተት: ' + e.message); }
+};
+
+window.rejectPasswordReset = async function(reqId) {
+  if (!confirm('ጥያቄውን ውድቅ ማድረግ?')) return;
+  try {
+    await updateDoc(doc(db, 'passwordRequests', reqId), { status: 'rejected', rejectedAt: serverTimestamp() });
+    alert('✅ ውድቅ ተደርጓል');
+    loadPasswordRequests();
+  } catch (e) { alert('❌ ስህተት: ' + e.message); }
+};
+
+syncCreateTenantPricing();
 </script>
 </body>
 </html>
